@@ -6,6 +6,7 @@ import AboutUs from "../components/StartingPage/AboutUs";
 import OurTeam from "../components/StartingPage/OurTeam";
 import Footer from "../components/StartingPage/Footer";
 import AuthModal from "../components/Authentication/AuthModel";
+import HowItWorks from "../components/StartingPage/HowItWorks";
 
 const StartPage = () => {
   const [showAuth, setShowAuth] = useState(false);
@@ -33,6 +34,7 @@ const StartPage = () => {
       <Hero />
       <Features />
       <AboutUs />
+        <HowItWorks />
       <OurTeam />
       <Footer />
 
