@@ -1,18 +1,43 @@
 import React, { useState } from "react";
+import { createServiceClient } from "@/lib/api/client";
+import { config } from "@/lib/config";
 
 const SignupForm = ({ onSignup, switchToLogin }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setError("");
     if (!email || !password || !confirmPassword) return setError("Fill all fields");
     if (password !== confirmPassword) return setError("Passwords do not match");
 
-    localStorage.setItem("token", "demo-token");
-    onSignup?.("demo-token");
+    try {
+      setLoading(true);
+      const authed = createServiceClient(config.apiBaseUrl, {
+        getToken: () => localStorage.getItem("auth_token"),
+      });
+      const data = await authed.post("/core/signup/", { email, password });
+      if (!data?.token) {
+        setError("Signup failed");
+        return;
+      }
+      if (data.token) {
+        localStorage.setItem("auth_token", data.token);
+        onSignup?.(data.token);
+        if (typeof window !== 'undefined') {
+          window.location.href = '/dashboard';
+          return;
+        }
+      }
+    } catch (err) {
+      setError("Network error");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -44,7 +69,7 @@ const SignupForm = ({ onSignup, switchToLogin }) => {
           placeholder="Confirm Password"
           className="w-full px-4 py-3 rounded-xl bg-gray-700 border border-gray-600 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-400 transition"
         />
-        <button className="w-full py-3 rounded-xl bg-orange-400 text-white font-semibold hover:bg-orange-500 transition-colors">
+        <button disabled={loading} className="w-full py-3 rounded-xl bg-orange-400 text-white font-semibold hover:bg-orange-500 transition-colors disabled:opacity-50">
           Sign Up
         </button>
       </form>
