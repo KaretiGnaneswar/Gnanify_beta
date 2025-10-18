@@ -1,15 +1,49 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { createServiceClient } from "@/lib/api/client";
+import { config } from "@/lib/config";
 
 const LoginForm = ({ onLogin, switchToSignup }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!email || !password) return setError("Enter email and password");
-    localStorage.setItem("token", "demo-token");
-    onLogin?.("demo-token");
+    setError("");
+
+    const trimmedEmail = email.trim();
+    const trimmedPassword = password.trim();
+
+    if (!trimmedEmail || !trimmedPassword) {
+      return setError("Enter both email and password");
+    }
+
+    try {
+      const authed = createServiceClient(config.apiBaseUrl, {
+        getToken: () => localStorage.getItem("auth_token"),
+      });
+      const data = await authed.post("/core/login/", {
+        email: trimmedEmail,
+        password: trimmedPassword,
+      });
+      if (!data?.token) {
+        setError("Login failed");
+        return;
+      }
+      localStorage.setItem("auth_token", data.token);
+      onLogin?.(data.token);
+      // Hard redirect so App shell re-evaluates auth and loads dashboard immediately
+      if (typeof window !== 'undefined') {
+        window.location.href = '/dashboard';
+        return;
+      }
+      navigate('/dashboard');
+    } catch (err) {
+      console.error(err);
+      setError("Network error");
+    }
   };
 
   return (
@@ -40,12 +74,12 @@ const LoginForm = ({ onLogin, switchToSignup }) => {
       </form>
 
       <p className="mt-5 text-center text-gray-300 text-sm">
-        Don’t have an account?{" "}
+        Don't have an account? {" "}
         <span
           className="text-orange-400 cursor-pointer hover:underline"
           onClick={switchToSignup}
         >
-          Sign Up
+          Create one
         </span>
       </p>
     </div>
