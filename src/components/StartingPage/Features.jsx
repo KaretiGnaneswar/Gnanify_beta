@@ -42,16 +42,18 @@ const featuresData = [
 ];
 
 const Features = () => (
-  <section id="features" className="py-20 bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 text-white">
-    <h2 className="text-4xl font-bold text-center mb-12">Features</h2>
-    <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 px-4">
+  <section id="features" className="py-16 sm:py-20 bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 text-white">
+    <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-center mb-10 sm:mb-12">Features</h2>
+
+    {/* ===== Desktop & Tablet Layout ===== */}
+    <div className="hidden md:grid max-w-7xl mx-auto grid-cols-3 gap-8 px-4 sm:px-6">
       {featuresData.map((feature, idx) => (
         <motion.div
           key={idx}
-          className="p-6 rounded-xl shadow-lg border border-gray-700 bg-gray-900 hover:scale-105 transition-transform duration-300 relative overflow-hidden"
+          className="relative p-6 rounded-xl shadow-lg border border-gray-700 bg-gray-900 hover:scale-105 transition-transform duration-300 overflow-hidden"
           whileHover={{ scale: 1.05 }}
         >
-          {/* Gradient corner highlight */}
+          {/* Gradient highlights */}
           <div className={`absolute -top-6 -left-6 w-24 h-24 rounded-full opacity-30 blur-3xl bg-gradient-to-br ${feature.color}`}></div>
           <div className={`absolute -bottom-6 -right-6 w-24 h-24 rounded-full opacity-30 blur-3xl bg-gradient-to-br ${feature.color}`}></div>
 
@@ -60,6 +62,26 @@ const Features = () => (
             <h3 className="text-xl font-semibold">{feature.title}</h3>
           </div>
           <p className="text-gray-300">{feature.desc}</p>
+        </motion.div>
+      ))}
+    </div>
+
+    {/* ===== Mobile Layout ===== */}
+    <div className="flex flex-col md:hidden max-w-md mx-auto gap-6 px-4">
+      {featuresData.map((feature, idx) => (
+        <motion.div
+          key={idx}
+          className="flex flex-col items-start bg-gray-900 p-4 rounded-xl shadow-lg border border-gray-700 hover:scale-105 transition-transform duration-300 relative overflow-hidden"
+          whileHover={{ scale: 1.02 }}
+        >
+          {/* Gradient background */}
+          <div className={`absolute -top-4 -left-4 w-16 h-16 rounded-full opacity-30 blur-2xl bg-gradient-to-br ${feature.color}`}></div>
+
+          <div className="flex items-center mb-3 space-x-3">
+            <div className="text-white">{feature.icon}</div>
+            <h3 className="text-lg font-semibold">{feature.title}</h3>
+          </div>
+          <p className="text-gray-300 text-sm">{feature.desc}</p>
         </motion.div>
       ))}
     </div>
