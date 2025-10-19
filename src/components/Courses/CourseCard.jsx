@@ -9,7 +9,7 @@ export default function CourseCard({ course }) {
       <img src={course.thumbnail} alt={course.title} className="h-40 w-full object-cover" />
       <div className="p-4 flex-1 flex flex-col">
         <button
-          onClick={() => navigate(`/dashboard/courses/${course.id}`)}
+          onClick={() => navigate(`/courses/${course.id}`)}
           className="text-lg font-semibold text-white hover:underline text-left line-clamp-2"
         >
           {course.title}
