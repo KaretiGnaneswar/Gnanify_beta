@@ -7,42 +7,50 @@ const LoginForm = ({ onLogin, switchToSignup }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    setLoading(true);
 
     const trimmedEmail = email.trim();
     const trimmedPassword = password.trim();
 
     if (!trimmedEmail || !trimmedPassword) {
-      return setError("Enter both email and password");
+      setError("Enter both email and password");
+      setLoading(false);
+      return;
     }
 
     try {
-      const authed = createServiceClient(config.apiBaseUrl, {
+      const client = createServiceClient(config.apiBaseUrl, {
         getToken: () => localStorage.getItem("auth_token"),
       });
-      const data = await authed.post("/core/login/", {
+
+      const data = await client.post("/core/login/", {
         email: trimmedEmail,
         password: trimmedPassword,
       });
+
       if (!data?.token) {
         setError("Login failed");
+        setLoading(false);
         return;
       }
+
+      // Save token first
       localStorage.setItem("auth_token", data.token);
       onLogin?.(data.token);
-      // Hard redirect so App shell re-evaluates auth and loads dashboard immediately
-      if (typeof window !== 'undefined') {
-        window.location.href = '/dashboard';
-        return;
-      }
-      navigate('/dashboard');
+
+      // Navigate using react-router (no hard reload)
+      navigate("/dashboard");
     } catch (err) {
       console.error(err);
       setError("Network error");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -51,7 +59,10 @@ const LoginForm = ({ onLogin, switchToSignup }) => {
       <h2 className="text-3xl font-extrabold text-center text-orange-400 mb-6">
         Welcome Back
       </h2>
-      {error && <p className="text-red-500 text-sm mb-4 text-center">{error}</p>}
+
+      {error && (
+        <p className="text-red-500 text-sm mb-4 text-center">{error}</p>
+      )}
 
       <form onSubmit={handleSubmit} className="space-y-5">
         <input
@@ -60,6 +71,7 @@ const LoginForm = ({ onLogin, switchToSignup }) => {
           onChange={(e) => setEmail(e.target.value)}
           placeholder="you@example.com"
           className="w-full px-4 py-3 rounded-xl bg-gray-700 border border-gray-600 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-400 transition"
+          disabled={loading}
         />
         <input
           type="password"
@@ -67,14 +79,19 @@ const LoginForm = ({ onLogin, switchToSignup }) => {
           onChange={(e) => setPassword(e.target.value)}
           placeholder="********"
           className="w-full px-4 py-3 rounded-xl bg-gray-700 border border-gray-600 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-400 transition"
+          disabled={loading}
         />
-        <button className="w-full py-3 rounded-xl bg-orange-400 text-white font-semibold hover:bg-orange-500 transition-colors">
-          Login
+        <button
+          type="submit"
+          className="w-full py-3 rounded-xl bg-orange-400 text-white font-semibold hover:bg-orange-500 transition-colors disabled:opacity-60"
+          disabled={loading}
+        >
+          {loading ? "Logging in…" : "Login"}
         </button>
       </form>
 
       <p className="mt-5 text-center text-gray-300 text-sm">
-        Don't have an account? {" "}
+        Don't have an account?{" "}
         <span
           className="text-orange-400 cursor-pointer hover:underline"
           onClick={switchToSignup}
