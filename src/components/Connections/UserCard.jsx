@@ -13,7 +13,7 @@ export default function UserCard({ user }) {
       />
       <div className="flex-1 min-w-0">
         <button
-          onClick={() => navigate(`/dashboard/connections/${user.id}`)}
+          onClick={() => navigate(`/connections/${user.id}`)}
           className="text-lg font-semibold text-white hover:underline text-left truncate"
           title={user.name}
         >
