@@ -45,7 +45,7 @@ const LoginForm = ({ onLogin, switchToSignup }) => {
       onLogin?.(data.token);
 
       // Navigate using react-router (no hard reload)
-      navigate("/dashboard");
+      navigate("/");
     } catch (err) {
       console.error(err);
       setError("Network error");
