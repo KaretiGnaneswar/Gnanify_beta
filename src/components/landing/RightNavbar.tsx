@@ -10,6 +10,7 @@ const TopNavbar: React.FC = () => {
   const navigate = useNavigate();
 
   const [canSwitch, setCanSwitch] = useState(false);
+  const [rank, setRank] = useState<number | null>(null);
 
   useEffect(() => {
     const token = localStorage.getItem('auth_token');
@@ -21,7 +22,9 @@ const TopNavbar: React.FC = () => {
         });
         const data = await api.get('/core/profile/');
         const role = (data as any)?.role;
+        const rnk = (data as any)?.rank;
         setCanSwitch(role === 'contributor' || role === 'admin');
+        if (typeof rnk === 'number') setRank(rnk);
       } catch {}
     })();
   }, []);
@@ -64,19 +67,9 @@ const TopNavbar: React.FC = () => {
     fetchNotifications();
   };
 
-  const handleProfileClick = async () => {
-    try {
-      const token = localStorage.getItem('auth_token');
-      if (!token) {
-        // Not logged in; maybe route to login
-        navigate("/login");
-        return;
-      }
-      // Default behavior: go to profile inside beta
-      navigate("/dashboard/profile");
-    } catch (e) {
-      navigate("/login");
-    }
+  const handleProfileClick = () => {
+    // Always navigate to profile inside dashboard
+    navigate("/dashboard/profile");
   };
 
   const handleSwitchClick = () => {
@@ -119,8 +112,8 @@ const TopNavbar: React.FC = () => {
           </div>
 
           <div className="flex items-center space-x-4 relative">
-            <div className="flex items-center bg-yellow-400 text-black rounded-full px-3 py-1 font-semibold">
-              <span className="mr-1">💰</span> 120
+            <div className="flex items-center bg-yellow-400 text-black rounded-full px-3 py-1 font-semibold" title="Rank">
+              <span className="mr-1">🏆</span> {rank ?? 0}
             </div>
             <div className="relative">
               <button className="relative" onClick={() => setShowNotifs((s) => !s)}>
@@ -207,7 +200,7 @@ const LeftSidebar: React.FC = () => {
     { icon: "🏠", title: "Home", path: "home" },
     { icon: "💻", title: "Compiler", path: "compiler" },
     { icon: "📄", title: "Resume", path: "resume" },
-    { icon: "👤", title: "Profile", path: "profile" },
+    { icon: "📰", title: "Tech News", path: "technews" },
     { icon: "📝", title: "Blogs", path: "blogs" },
     { icon: "📚", title: "Courses", path: "courses" },
     { icon: "🤝", title: "Connections", path: "connections" },

@@ -2,7 +2,10 @@ import React, { lazy, Suspense } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import AppLayout from '@/components/landing/RightNavbar';
 const HomePage = lazy(() => import('@/pages/Home/HomePage'));
-const ResumePage = lazy(() => import('@/pages/Resume/ResumePage'));
+const ResumeListPage = lazy(() => import('@/pages/Resume/ResumeListPage'));
+const ResumeTemplatePicker = lazy(() => import('@/pages/Resume/ResumeTemplatePicker'));
+const ResumeBuilderPage = lazy(() => import('@/pages/Resume/ResumeBuilderPage'));
+const TechNewsPage = lazy(() => import('@/pages/TechNews/TechNewsPage'));
 const CompilerPage = lazy(() => import('@/pages/Compiler/CompilerPage'));
 const ProfilePage = lazy(() => import('@/pages/Profile/ProfilePage'));
 const CoursesPage = lazy(() => import('@/pages/Courses/CoursesPage'));
@@ -23,7 +26,11 @@ export function AppRoutes() {
           <Route index element={<Navigate to="home" replace />} />
           <Route path="home" element={<HomePage />} />
           <Route path="compiler" element={<CompilerPage />} />
-          <Route path="resume" element={<ResumePage />} />
+          <Route path="resume" >
+            <Route index element={<ResumeListPage />} />
+            <Route path="new" element={<ResumeTemplatePicker />} />
+            <Route path=":id/edit" element={<ResumeBuilderPage />} />
+          </Route>
           <Route path="profile" element={<ProfilePage />} />
           <Route path="blogs" element={<BlogHomePage />} />
           <Route path="blogs/:id" element={<BlogIndetailPage />} />
@@ -31,6 +38,7 @@ export function AppRoutes() {
           <Route path="courses/:id" element={<CourseDetailPage />} />
           <Route path="connections" element={<ConnectionsPage />} />
           <Route path="connections/:id" element={<ConnectionDetailPage />} />
+          <Route path="technews" element={<TechNewsPage />} />
           <Route path="settings" element={<SettingsPage />} />
         </Route>
         {/* Fallback: redirect any unknown path under authed to dashboard */}

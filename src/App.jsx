@@ -43,6 +43,7 @@ import { BrowserRouter as Router } from "react-router-dom";
 import { ErrorBoundary } from "@/components/common/ErrorBoundary";
 import { AppRoutes } from "@/routes/AppRoutes";
 import { PublicRoutes } from "@/routes/PublicRoutes";
+import { AnalyticsListener } from "@/lib/AnalyticsListener";
 
 const App = () => {
   const [isAuthed, setIsAuthed] = useState(() => {
@@ -64,6 +65,7 @@ const App = () => {
   return (
     <Router>
       <ErrorBoundary>
+        <AnalyticsListener />
         {isAuthed ? <AppRoutes /> : <PublicRoutes />}
       </ErrorBoundary>
     </Router>
