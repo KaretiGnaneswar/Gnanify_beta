@@ -2,37 +2,30 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { createServiceClient } from "@/lib/api/client";
 import { config } from "@/lib/config";
+import { useAuth } from "@/context/AuthContext";
 
-const LoginForm = ({ onLogin, switchToSignup }) => {
+const LoginForm = ({ switchToSignup }) => {
+  const { login } = useAuth();
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
     setLoading(true);
 
-    const trimmedEmail = email.trim();
-    const trimmedPassword = password.trim();
-
-    if (!trimmedEmail || !trimmedPassword) {
+    if (!email || !password) {
       setError("Enter both email and password");
       setLoading(false);
       return;
     }
 
     try {
-      const client = createServiceClient(config.apiBaseUrl, {
-        getToken: () => localStorage.getItem("auth_token"),
-      });
-
-      const data = await client.post("/core/login/", {
-        email: trimmedEmail,
-        password: trimmedPassword,
-      });
+      const client = createServiceClient(config.apiBaseUrl);
+      const data = await client.post("/core/login/", { email, password });
 
       if (!data?.token) {
         setError("Login failed");
@@ -40,14 +33,9 @@ const LoginForm = ({ onLogin, switchToSignup }) => {
         return;
       }
 
-      // Save token first
-      localStorage.setItem("auth_token", data.token);
-      onLogin?.(data.token);
-
-      // Navigate using react-router (no hard reload)
-      navigate("/");
+      login(data.token); // ✅ AuthContext login
+      navigate("/"); // redirect to root
     } catch (err) {
-      console.error(err);
       setError("Network error");
     } finally {
       setLoading(false);
@@ -60,9 +48,7 @@ const LoginForm = ({ onLogin, switchToSignup }) => {
         Welcome Back
       </h2>
 
-      {error && (
-        <p className="text-red-500 text-sm mb-4 text-center">{error}</p>
-      )}
+      {error && <p className="text-red-500 text-sm mb-4 text-center">{error}</p>}
 
       <form onSubmit={handleSubmit} className="space-y-5">
         <input
