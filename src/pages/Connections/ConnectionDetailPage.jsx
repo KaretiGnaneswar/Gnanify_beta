@@ -51,14 +51,12 @@ export default function ConnectionDetailPage() {
   if (!user)
     return (
       <div className="p-4">
-        <Link to="/dashboard/connections" className="text-blue-500 hover:underline">← Back to Connections</Link>
         <div className="mt-4 text-gray-300">Profile not found.</div>
       </div>
     );
 
   return (
     <div className="p-4 space-y-6">
-      <Link to="/dashboard/connections" className="text-blue-500 hover:underline">← Back to Connections</Link>
 
       <div className="rounded-xl border border-white/10 bg-gray-900/40 backdrop-blur-md p-6">
         <ProfileHeader user={user} />
