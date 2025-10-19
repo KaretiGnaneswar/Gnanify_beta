@@ -21,7 +21,7 @@ export default function ConnectionDetailPage() {
         });
         // Fetch viewer profile to determine reciprocity hints
         const me = await client.get('/core/profile/');
-        const u = await client.get(`/connections/users/${id}/`);
+        const u = await client.get(`/connections/users/${id}/`);     
         const mapped = u && {
           id: u.id,
           name: u.name || (u.email ? u.email.split('@')[0] : 'User'),
