@@ -6,13 +6,13 @@ const AuthModal = ({ onAuthSuccess, onClose }) => {
   const [showLogin, setShowLogin] = useState(true);
 
   const handleLogin = (token) => {
-    if (onAuthSuccess) onAuthSuccess(token);
-    if (onClose) onClose();
+    onAuthSuccess?.(token);
+    onClose?.();
   };
 
   const handleSignup = (token) => {
-    if (onAuthSuccess) onAuthSuccess(token);
-    if (onClose) onClose();
+    onAuthSuccess?.(token);
+    onClose?.();
   };
 
   return (
@@ -26,15 +26,9 @@ const AuthModal = ({ onAuthSuccess, onClose }) => {
         </button>
 
         {showLogin ? (
-          <LoginForm
-            onLogin={handleLogin}
-            switchToSignup={() => setShowLogin(false)}
-          />
+          <LoginForm onLogin={handleLogin} switchToSignup={() => setShowLogin(false)} />
         ) : (
-          <SignupForm
-            onSignup={handleSignup}
-            switchToLogin={() => setShowLogin(true)}
-          />
+          <SignupForm onSignup={handleSignup} switchToLogin={() => setShowLogin(true)} />
         )}
       </div>
     </div>
