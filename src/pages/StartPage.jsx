@@ -8,6 +8,7 @@ import OurTeam from "@/components/ui/layout/OurTeam";
 import Footer from "@/components/ui/layout/Footer";
 import AuthModal from "@/components/features/auth/AuthModel";
 import HowItWorks from "@/components/ui/layout/HowItWorks";
+import Contributor from "@/components/ui/layout/ContributorJourney";
 // import Testimonils from "../components/StartingPage/Testimonils";
 import { Helmet } from "react-helmet-async";
 const StartPage = () => {
@@ -59,6 +60,7 @@ const StartPage = () => {
       <AboutUs />
         <HowItWorks />
       <OurTeam />
+      <Contributor />
       {/* <Testimonils /> */}
       <Footer />
 

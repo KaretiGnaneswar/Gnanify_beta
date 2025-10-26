@@ -1,5 +1,5 @@
-
 import { motion } from "framer-motion";
+import { FaLaptopCode, FaBook, FaUsers, FaRocket } from "react-icons/fa";
 
 const Hero = () => {
   const textVariants = {
@@ -12,11 +12,31 @@ const Hero = () => {
     visible: { opacity: 1, x: 0, scale: 1, transition: { duration: 1.2, ease: "easeOut" } },
   };
 
+  const floatingIcons = [
+    { icon: <FaLaptopCode size={28} />, x: "10%", y: "20%", delay: 0 },
+    { icon: <FaBook size={28} />, x: "70%", y: "40%", delay: 2 },
+    { icon: <FaUsers size={28} />, x: "40%", y: "80%", delay: 1 },
+    { icon: <FaRocket size={28} />, x: "80%", y: "10%", delay: 3 },
+  ];
+
   return (
-    <section className="relative bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white overflow-hidden">
+    <section className="relative bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white overflow-hidden min-h-screen">
+
+      {/* ===== Floating Background Icons ===== */}
+      {floatingIcons.map((item, idx) => (
+        <motion.div
+          key={idx}
+          className="absolute text-orange-500 opacity-20 pointer-events-none"
+          style={{ top: item.y, left: item.x }}
+          animate={{ y: [0, 20, 0], rotate: [0, 15, -15, 0] }}
+          transition={{ duration: 8, repeat: Infinity, delay: item.delay, ease: "easeInOut" }}
+        >
+          {item.icon}
+        </motion.div>
+      ))}
 
       {/* ===== Desktop Version ===== */}
-      <div className="hidden md:flex flex-row items-center justify-between min-h-screen px-6 md:px-20">
+      <div className="hidden md:flex flex-row items-center justify-between min-h-screen px-6 md:px-20 relative z-10">
         {/* Text */}
         <motion.div
           className="md:w-1/2 flex flex-col items-start space-y-6 z-10"
@@ -67,7 +87,7 @@ const Hero = () => {
       </div>
 
       {/* ===== Mobile Version ===== */}
-      <div className="flex flex-col items-center justify-center px-4 py-12 md:hidden pt-24">
+      <div className="flex flex-col items-center justify-center px-4 py-12 md:hidden pt-24 relative z-10">
         <motion.div
           className="w-full max-w-xs sm:max-w-sm mb-6"
           initial="hidden"
@@ -79,13 +99,6 @@ const Hero = () => {
             alt="Student Listening"
             className="rounded-3xl shadow-2xl object-cover w-full transform hover:scale-105 transition-transform duration-500"
           />
-          {/* Optional: small corner lines for mobile */}
-          <div className="absolute -top-3 -left-3 w-12 h-12">
-            <div className="border-t-4 border-l-4 border-orange-500 w-full h-full rounded-tl-xl"></div>
-          </div>
-          <div className="absolute -bottom-3 -right-3 w-12 h-12">
-            <div className="border-b-4 border-r-4 border-blue-500 w-full h-full rounded-br-xl"></div>
-          </div>
         </motion.div>
 
         <motion.h1
