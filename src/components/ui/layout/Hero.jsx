@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { FaLaptopCode, FaBook, FaUsers, FaRocket } from "react-icons/fa";
 
-const Hero = () => {
+const Hero = ({ onLoginClick }) => {
   const textVariants = {
     hidden: { opacity: 0, x: -50 },
     visible: { opacity: 1, x: 0, transition: { duration: 1, ease: "easeOut" } },
@@ -51,6 +51,7 @@ const Hero = () => {
             Learn, Grow, and Connect with students & professionals. Track your learning journey and excel!
           </p>
           <motion.button
+          onClick={onLoginClick}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             className="bg-white/10 backdrop-blur-md border border-white/20 text-white px-8 py-3 rounded-xl font-semibold hover:bg-orange-500 hover:border-transparent transition-all duration-300"

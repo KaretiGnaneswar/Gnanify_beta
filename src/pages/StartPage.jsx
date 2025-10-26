@@ -55,12 +55,12 @@ const StartPage = () => {
       <Navbar onLoginClick={handleAuthClick} />
 
       {/* Main sections */}
-      <Hero />
+      <Hero onLoginClick={handleAuthClick}/>
       <Features />
       <AboutUs />
         <HowItWorks />
       <OurTeam />
-      <Contributor />
+      <Contributor onLoginClick={handleAuthClick}/>
       {/* <Testimonils /> */}
       <Footer />
 
