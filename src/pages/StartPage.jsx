@@ -1,13 +1,13 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import Navbar from "../components/StartingPage/Navbar";
-import Hero from "../components/StartingPage/Hero";
-import Features from "../components/StartingPage/Features";
-import AboutUs from "../components/StartingPage/AboutUs";
-import OurTeam from "../components/StartingPage/OurTeam";
-import Footer from "../components/StartingPage/Footer";
-import AuthModal from "../components/Authentication/AuthModel";
-import HowItWorks from "../components/StartingPage/HowItWorks";
+import { Navbar } from "@/components";
+import Hero from "@/components/ui/layout/Hero";
+import Features from "@/components/ui/layout/Features";
+import AboutUs from '@/components/ui/layout/AboutUs';
+import OurTeam from "@/components/ui/layout/OurTeam";
+import Footer from "@/components/ui/layout/Footer";
+import AuthModal from "@/components/features/auth/AuthModel";
+import HowItWorks from "@/components/ui/layout/HowItWorks";
 // import Testimonils from "../components/StartingPage/Testimonils";
 import { Helmet } from "react-helmet-async";
 const StartPage = () => {
@@ -25,7 +25,7 @@ const StartPage = () => {
   const handleAuthSuccess = (token) => {
     if (token) {
       localStorage.setItem("auth_token", token);
-      navigate("/dashboard", { replace: true });
+      navigate("/", { replace: true }); // redirect to home page with right navbar
     }
     setShowAuth(false);
   };

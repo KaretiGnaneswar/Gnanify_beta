@@ -23,7 +23,7 @@ export async function openRazorpayCheckout({
   currency = 'INR',
   name = 'Gnanify',
   description = 'Course Purchase',
-  image = '/vite.svg',
+  image = '/favicon.ico',
   order,
   prefill = {},
   notes = {},

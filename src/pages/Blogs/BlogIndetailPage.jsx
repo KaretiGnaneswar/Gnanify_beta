@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { blogsApi } from '@/services/blogs';
-import UserCard from '@/components/Connections/UserCard';
+import { UserCard } from '@/components';
 import { createServiceClient } from '@/lib/api/client';
 import { config } from '@/lib/config';
 
@@ -124,7 +124,7 @@ export default function BlogIndetailPage() {
 
   return (
     <div className="p-4">
-      <Link to="/dashboard/blogs" className="text-blue-500 hover:underline">← Back to Blogs</Link>
+      <Link to="/blogs" className="text-blue-500 hover:underline">← Back to Blogs</Link>
 
       {loading && <div className="mt-3 text-gray-400">Loading...</div>}
       {error && (
@@ -152,7 +152,7 @@ export default function BlogIndetailPage() {
                       try {
                         setDeleting(true);
                         await blogsApi.delete(id);
-                        navigate('/dashboard/blogs');
+                        navigate('/blogs');
                       } finally {
                         setDeleting(false);
                       }

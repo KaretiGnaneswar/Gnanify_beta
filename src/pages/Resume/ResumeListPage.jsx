@@ -29,7 +29,7 @@ export default function ResumeListPage() {
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold">My Resumes</h1>
         <button
-          onClick={() => navigate('/dashboard/resume/new')}
+          onClick={() => navigate('/resume/new')}
           className="px-4 py-2 rounded-md bg-orange-400 text-black font-semibold hover:bg-orange-500"
         >
           New Resume
@@ -47,7 +47,7 @@ export default function ResumeListPage() {
               <div className="text-xs text-gray-400 mt-1">Template: {r.template_key}</div>
               <div className="text-xs text-gray-500">Updated: {r.updated_at ? new Date(r.updated_at).toLocaleString() : '-'}</div>
               <div className="mt-3 flex gap-2">
-                <button onClick={() => navigate(`/dashboard/resume/${r.id}/edit`)} className="px-3 py-1 rounded bg-blue-600 hover:bg-blue-500 text-white text-sm">Edit</button>
+                <button onClick={() => navigate(`/resume/${r.id}/edit`)} className="px-3 py-1 rounded bg-blue-600 hover:bg-blue-500 text-white text-sm">Edit</button>
                 <button onClick={async () => {
                   if (!confirm('Delete this resume?')) return;
                   await resumeApi.del(r.id);

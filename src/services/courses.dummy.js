@@ -32,8 +32,6 @@ let MOCK_COURSES = [
         freePreview: true,
         notesPdfUrl: 'https://arxiv.org/pdf/1706.03762.pdf',
       },
-      // Assignment slot after first two videos
-      // UI can use getAssignments() to render details
       {
         id: 'l_1_3',
         title: 'Components, Props, and State',
@@ -42,6 +40,22 @@ let MOCK_COURSES = [
         freePreview: false,
         notesPdfUrl: 'https://arxiv.org/pdf/2203.15556.pdf',
       },
+      {
+        id: 'l_1_4',
+        title: 'Hooks Deep Dive: useEffect & useMemo',
+        duration: '19:24',
+        videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/WeAreGoingOnBullrun.mp4',
+        freePreview: false,
+        notesPdfUrl: 'https://arxiv.org/pdf/2005.14165.pdf',
+      },
+      {
+        id: 'l_1_5',
+        title: 'State Management Patterns',
+        duration: '16:03',
+        videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
+        freePreview: false,
+        notesPdfUrl: 'https://arxiv.org/pdf/2302.13971.pdf',
+      },
     ],
     assignments: [
       {
@@ -49,6 +63,46 @@ let MOCK_COURSES = [
         title: 'Assignment 1: React Fundamentals',
         afterLectures: ['l_1_1', 'l_1_2'],
         description: 'Complete exercises on JSX, components, and props.',
+        mcqs: [
+          {
+            id: 'a_1_1_q1',
+            text: 'JSX stands for…',
+            options: ['Java Syntax eXtension', 'JavaScript XML', 'JSON eXtended', 'JS eXperience'],
+            correctIndex: 1,
+          },
+          {
+            id: 'a_1_1_q2',
+            text: 'Which hook runs after every render by default?',
+            options: ['useMemo', 'useEffect', 'useRef', 'useCallback'],
+            correctIndex: 1,
+          },
+          {
+            id: 'a_1_1_q3',
+            text: 'Props are…',
+            options: ['Mutable inputs', 'Immutable inputs', 'Global state', 'Context only'],
+            correctIndex: 1,
+          },
+        ],
+      },
+      {
+        id: 'a_1_2',
+        title: 'Assignment 2: Hooks & State',
+        afterLectures: ['l_1_3', 'l_1_4'],
+        description: 'Practice useState, useEffect, and memoization.',
+        mcqs: [
+          {
+            id: 'a_1_2_q1',
+            text: 'useMemo is used to…',
+            options: ['Store DOM refs', 'Defer expensive calculations', 'Fetch data', 'Update state'],
+            correctIndex: 1,
+          },
+          {
+            id: 'a_1_2_q2',
+            text: 'Which dependency array causes an effect to run only once?',
+            options: ['[count]', '[]', '[props]', 'No array'],
+            correctIndex: 1,
+          },
+        ],
       },
     ],
   },
@@ -83,6 +137,14 @@ let MOCK_COURSES = [
         freePreview: false,
         notesPdfUrl: 'https://arxiv.org/pdf/2001.08361.pdf',
       },
+      {
+        id: 'l_2_3',
+        title: 'Observability & Monitoring',
+        duration: '14:36',
+        videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/SubaruOutbackOnStreetAndDirt.mp4',
+        freePreview: false,
+        notesPdfUrl: 'https://arxiv.org/pdf/2010.11929.pdf',
+      },
     ],
     assignments: [
       {
@@ -90,6 +152,34 @@ let MOCK_COURSES = [
         title: 'Assignment 1: Service Boundaries',
         afterLectures: ['l_2_1', 'l_2_2'],
         description: 'Design service boundaries and define contracts.',
+        mcqs: [
+          {
+            id: 'a_2_1_q1',
+            text: 'A microservice should be…',
+            options: ['Highly coupled', 'Loosely coupled', 'Monolithic', 'Shared DB schema'],
+            correctIndex: 1,
+          },
+          {
+            id: 'a_2_1_q2',
+            text: 'Which is NOT a communication pattern?',
+            options: ['Request/Response', 'Pub/Sub', 'Event Sourcing', 'Cron Scheduling'],
+            correctIndex: 3,
+          },
+        ],
+      },
+      {
+        id: 'a_2_2',
+        title: 'Assignment 2: Observability',
+        afterLectures: ['l_2_3'],
+        description: 'Add metrics, tracing, and logging instrumentation.',
+        mcqs: [
+          {
+            id: 'a_2_2_q1',
+            text: 'Tracing correlates…',
+            options: ['API docs', 'Log lines', 'Requests across services', 'Database migrations'],
+            correctIndex: 2,
+          },
+        ],
       },
     ],
   },
@@ -116,6 +206,14 @@ let MOCK_COURSES = [
         freePreview: true,
         notesPdfUrl: 'https://arxiv.org/pdf/1810.04805.pdf',
       },
+      {
+        id: 'l_3_2',
+        title: 'Data Analysis with Pandas',
+        duration: '17:58',
+        videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4',
+        freePreview: false,
+        notesPdfUrl: 'https://arxiv.org/pdf/1905.10444.pdf',
+      },
     ],
     assignments: [
       {
@@ -123,6 +221,34 @@ let MOCK_COURSES = [
         title: 'Assignment 1: Python Basics',
         afterLectures: ['l_3_1'],
         description: 'Practice variables, control flow, and functions.',
+        mcqs: [
+          {
+            id: 'a_3_1_q1',
+            text: 'Which is a mutable data type?',
+            options: ['tuple', 'list', 'str', 'int'],
+            correctIndex: 1,
+          },
+          {
+            id: 'a_3_1_q2',
+            text: 'Pandas is primarily used for…',
+            options: ['Web dev', 'Data analysis', '3D graphics', 'Networking'],
+            correctIndex: 1,
+          },
+        ],
+      },
+      {
+        id: 'a_3_2',
+        title: 'Assignment 2: DataFrames',
+        afterLectures: ['l_3_2'],
+        description: 'Manipulate DataFrames and perform aggregations.',
+        mcqs: [
+          {
+            id: 'a_3_2_q1',
+            text: 'To select a column you use…',
+            options: ['df.column', 'df[col]', 'df.select(col)', 'df.pick(col)'],
+            correctIndex: 1,
+          },
+        ],
       },
     ],
   }
