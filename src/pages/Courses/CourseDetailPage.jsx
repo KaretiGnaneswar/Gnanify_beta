@@ -1,420 +1,383 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { getCourse, getLectures, getAssignments, enrollFree, purchaseCourse } from '@/services/courses.dummy';
-import PriceTag from '@/components/Courses/PriceTag';
-import VideoPlayer from '@/components/Courses/VideoPlayer';
-import LectureList from '@/components/Courses/LectureList';
-import BuyPrompt from '@/components/Courses/BuyPrompt';
-import NotesPdfModal from '@/components/Courses/NotesPdfModal';
-import AssignmentMcqModal from '@/components/Courses/AssignmentMcqModal';
-import { getProfile as getUserProfile } from '@/services/connections.dummy';
-import { openRazorpayCheckout } from '@/services/payments.razorpay';
+import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '@/context/AuthContext';
+import VideoPlayer from '@/components/features/courses/VideoPlayer';
+import { fetchCourse, fetchLessons, fetchSubtopics, enrollInCourse, unenrollFromCourse, likeCourse, dislikeCourse } from '@/services/courses';
 
 export default function CourseDetailPage() {
   const { id } = useParams();
+  const navigate = useNavigate();
+  const { user } = useAuth();
   const [course, setCourse] = useState(null);
+  const [lessons, setLessons] = useState([]);
+  const [subtopics, setSubtopics] = useState([]);
+  const [currentSubTopic, setCurrentSubTopic] = useState(null);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
   const [message, setMessage] = useState('');
-  const [lectures, setLectures] = useState([]);
-  const [currentLecture, setCurrentLecture] = useState(null);
-  const [purchased, setPurchased] = useState(false);
-  const [buyOpen, setBuyOpen] = useState(false);
-  const [pdfOpen, setPdfOpen] = useState(false);
-  const [pdfLecture, setPdfLecture] = useState(null);
-  const [instructorProfile, setInstructorProfile] = useState(null);
-  const [assignments, setAssignments] = useState([]);
-  const [assignmentSubmitted, setAssignmentSubmitted] = useState({}); // { [assignmentId]: true }
-  const [progressByLecture, setProgressByLecture] = useState({}); // { [lectureId]: number 0-100 }
-  const [completedSet, setCompletedSet] = useState(new Set());
-  const [mcqOpen, setMcqOpen] = useState(false);
-  const [mcqAssignment, setMcqAssignment] = useState(null);
-  const [mcqResult, setMcqResult] = useState(null);
+  const [error, setError] = useState('');
+  const [isEnrolled, setIsEnrolled] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [selectedLesson, setSelectedLesson] = useState(null);
 
   useEffect(() => {
-    let mounted = true;
-    (async () => {
-      try {
-        const data = await getCourse(id);
-        const lecs = await getLectures(id);
-        const asgs = await getAssignments(id);
-        if (mounted) {
-          setCourse(data);
-          setLectures(lecs);
-          setAssignments(asgs);
-          setCurrentLecture(lecs[0] || null);
-          // load instructor profile for avatar/name link
-          if (data?.instructorId) {
-            try {
-              const prof = await getUserProfile(data.instructorId);
-              if (prof && mounted) setInstructorProfile(prof);
-            } catch {}
-          }
-          // load purchased flag
-          try {
-            const p = localStorage.getItem(`course_purchased_${id}`);
-            if (p === 'true') setPurchased(true);
-          } catch {}
-          // load saved progress
-          try {
-            const raw = localStorage.getItem(`course_progress_${id}`);
-            if (raw) {
-              const obj = JSON.parse(raw) || {};
-              setProgressByLecture(obj);
-              const comp = new Set(Object.entries(obj).filter(([, p]) => p >= 99).map(([lid]) => lid));
-              setCompletedSet(comp);
-            }
-          } catch {}
-          try {
-            const rawA = localStorage.getItem(`course_assignments_${id}`);
-            if (rawA) setAssignmentSubmitted(JSON.parse(rawA) || {});
-          } catch {}
-        }
-      } finally {
-        if (mounted) setLoading(false);
-      }
-    })();
-    return () => {
-      mounted = false;
-    };
+    if (id) {
+      loadCourseData();
+    }
   }, [id]);
 
+  const loadCourseData = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      // Fetch course details
+      const courseData = await fetchCourse(id);
+      setCourse(courseData);
+      setIsEnrolled(courseData.is_enrolled || false);
+
+      // Fetch lessons
+      const lessonsData = await fetchLessons(id);
+      setLessons(lessonsData);
+      
+      // Fetch subtopics for the first lesson if available
+      if (lessonsData.length > 0) {
+        setSelectedLesson(lessonsData[0]);
+        loadSubtopics(lessonsData[0].id);
+      }
+    } catch (error) {
+      setError(error.message || 'Failed to load course data');
+      console.error('Error fetching course data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadSubtopics = async (lessonId) => {
+    try {
+      const subtopicsData = await fetchSubtopics(lessonId);
+      setSubtopics(subtopicsData);
+      if (subtopicsData.length > 0) {
+        setCurrentSubTopic(subtopicsData[0]);
+      }
+    } catch (error) {
+      console.error('Error fetching subtopics:', error);
+    }
+  };
+
   const handleEnroll = async () => {
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+
+    setActionLoading(true);
     try {
-      setActionLoading(true);
-      const res = await enrollFree(course.id);
-      setMessage(res?.success ? 'Enrolled successfully.' : 'Failed to enroll.');
+      await enrollInCourse(id);
+      setIsEnrolled(true);
+      setMessage('Successfully enrolled in the course!');
+      loadCourseData(); // Refresh course data to get updated enrollment status
+    } catch (error) {
+      setError(error.message || 'Failed to enroll in the course');
+      console.error('Error enrolling in course:', error);
     } finally {
       setActionLoading(false);
     }
   };
 
-  const handlePurchase = async () => {
+  const handleUnenroll = async () => {
+    setActionLoading(true);
     try {
-      setActionLoading(true);
-      const res = await purchaseCourse(course.id);
-      setMessage(res?.success ? `Purchase successful. Order: ${res.orderId}` : 'Purchase failed.');
+      await unenrollFromCourse(id);
+      setIsEnrolled(false);
+      setMessage('Successfully unenrolled from the course');
+      loadCourseData();
+    } catch (error) {
+      setError(error.message || 'Failed to unenroll from the course');
+      console.error('Error unenrolling from course:', error);
     } finally {
       setActionLoading(false);
     }
   };
 
-  if (loading) return <div className="p-4 text-gray-400">Loading course…</div>;
-  if (!course)
+  const handleLike = async () => {
+    try {
+      await likeCourse(id);
+      loadCourseData(); // Refresh to get updated like counts
+    } catch (error) {
+      console.error('Error liking course:', error);
+    }
+  };
+
+  const handleDislike = async () => {
+    try {
+      await dislikeCourse(id);
+      loadCourseData(); // Refresh to get updated dislike counts
+    } catch (error) {
+      console.error('Error disliking course:', error);
+    }
+  };
+
+  const handleLessonSelect = (lesson) => {
+    setSelectedLesson(lesson);
+    loadSubtopics(lesson.id);
+  };
+
+  const handleSubTopicSelect = (subtopic) => {
+    setCurrentSubTopic(subtopic);
+  };
+
+  if (loading) {
     return (
-      <div className="p-4">
-        <Link to="/dashboard/courses" className="text-blue-500 hover:underline">← Back to Courses</Link>
-        <div className="mt-4 text-gray-300">Course not found.</div>
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
+          <p className="text-gray-400 mt-4">Loading course...</p>
+        </div>
       </div>
     );
+  }
 
-  const isFree = !course.price || course.price === 0;
-  const hasAccess = isFree || purchased;
-  const firstId = lectures?.[0]?.id;
-  // Build per-lecture assignments (ensure one assignment after each lecture)
-  const derivedAssignments = (lectures || []).map((l, idx) => {
-    const explicit = (assignments || []).find(
-      (a) => a.lectureId === l.id || (a.afterLectures || []).includes(l.id)
-    );
+  if (!course) {
     return (
-      explicit || {
-        id: `auto_${l.id}`,
-        title: `Assignment ${idx + 1}`,
-        afterLectures: [l.id],
-        description: '',
-      }
+      <div className="min-h-screen bg-gray-900 p-4">
+        <div className="max-w-4xl mx-auto">
+          <Link to="/courses" className="text-blue-500 hover:underline mb-4 inline-block">
+            ← Back to Courses
+          </Link>
+          <div className="text-center py-8">
+            <h1 className="text-2xl font-bold text-white mb-4">Course not found</h1>
+            <p className="text-gray-400">The course you're looking for doesn't exist or has been removed.</p>
+          </div>
+        </div>
+      </div>
     );
-  });
-  const assignmentByLectureId = new Map(
-    derivedAssignments.map((a, i) => [a.afterLectures?.[0] || (lectures[i] && lectures[i].id), a])
-  );
-  // Compute locked lectures: if paid, only first unlocked by purchase; also require prev lecture completed and its assignment submitted
-  const lockedIds = new Set();
-  (lectures || []).forEach((l, idx) => {
-    if (!hasAccess && l.id !== firstId) {
-      lockedIds.add(l.id);
-      return;
-    }
-    if (idx === 0) return;
-    const prevId = lectures[idx - 1]?.id;
-    if (!completedSet.has(prevId)) {
-      lockedIds.add(l.id);
-      return;
-    }
-    const a = assignmentByLectureId.get(prevId);
-    if (a && !assignmentSubmitted[a.id]) {
-      lockedIds.add(l.id);
-    }
-  });
+  }
 
   return (
-    <div className="p-4 space-y-6">
-      <Link to="/dashboard/courses" className="text-blue-500 hover:underline">← Back to Courses</Link>
-      
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-        {/* Left: Video + Course Meta */}
-        <div className="lg:col-span-2 space-y-4">
-          <div className="rounded-xl border border-white/10 bg-black overflow-hidden">
-            {currentLecture ? (
-              <VideoPlayer
-                src={currentLecture.videoUrl}
-                title={currentLecture.title}
-                enforceNoSkip={true}
-                onProgress={(pct) => {
-                  // update per-lecture progress
-                  setProgressByLecture((prev) => {
-                    const next = { ...prev, [currentLecture.id]: Math.max(prev[currentLecture.id] || 0, Math.floor(pct)) };
-                    try { localStorage.setItem(`course_progress_${id}`, JSON.stringify(next)); } catch {}
-                    return next;
-                  });
-                }}
-                onComplete={() => {
-                  setCompletedSet((prev) => new Set(prev).add(currentLecture.id));
-                  setProgressByLecture((prev) => {
-                    const next = { ...prev, [currentLecture.id]: 100 };
-                    try { localStorage.setItem(`course_progress_${id}`, JSON.stringify(next)); } catch {}
-                    return next;
-                  });
-                }}
-              />
-            ) : (
-              <VideoPlayer src={course.thumbnail} title={course.title} />
+    <div className="min-h-screen bg-gray-900">
+      {/* Header */}
+      <div className="bg-gray-800 border-b border-gray-700">
+        <div className="max-w-7xl mx-auto px-4 py-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <Link to="/courses" className="text-blue-500 hover:underline mb-2 inline-block">
+                ← Back to Courses
+              </Link>
+              <h1 className="text-3xl font-bold text-white">{course.title}</h1>
+              <p className="text-gray-300 mt-2">By {course.created_by_name}</p>
+            </div>
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleLike}
+                  className={`px-4 py-2 rounded-lg text-sm transition-colors ${
+                    course.is_liked 
+                      ? 'bg-blue-600 text-white' 
+                      : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                  }`}
+                >
+                  👍 {course.likes_count || 0}
+                </button>
+                <button
+                  onClick={handleDislike}
+                  className={`px-4 py-2 rounded-lg text-sm transition-colors ${
+                    course.is_disliked 
+                      ? 'bg-red-600 text-white' 
+                      : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                  }`}
+                >
+                  👎 {course.dislikes_count || 0}
+                </button>
+              </div>
+              {isEnrolled ? (
+                <button
+                  onClick={handleUnenroll}
+                  disabled={actionLoading}
+                  className="px-6 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors disabled:opacity-50"
+                >
+                  {actionLoading ? 'Unenrolling...' : 'Unenroll'}
+                </button>
+              ) : (
+                <button
+                  onClick={handleEnroll}
+                  disabled={actionLoading}
+                  className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors disabled:opacity-50"
+                >
+                  {actionLoading ? 'Enrolling...' : 'Enroll Now'}
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 py-6">
+        {/* Messages */}
+        {message && (
+          <div className="mb-6 bg-green-900/20 border border-green-500/30 rounded-lg p-4">
+            <p className="text-green-400">{message}</p>
+          </div>
+        )}
+
+        {error && (
+          <div className="mb-6 bg-red-900/20 border border-red-500/30 rounded-lg p-4">
+            <p className="text-red-400">{error}</p>
+          </div>
+        )}
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Main Content */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Course Description */}
+            <div className="bg-gray-800 rounded-lg p-6">
+              <h2 className="text-xl font-semibold text-white mb-4">About this course</h2>
+              <p className="text-gray-300 leading-relaxed">{course.description}</p>
+              
+              <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-blue-400">{course.total_lessons || 0}</div>
+                  <div className="text-sm text-gray-400">Lessons</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-green-400">{course.enrollments_count || 0}</div>
+                  <div className="text-sm text-gray-400">Students</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-yellow-400">{course.average_rating || 0}</div>
+                  <div className="text-sm text-gray-400">Rating</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-purple-400">{course.category_name || 'N/A'}</div>
+                  <div className="text-sm text-gray-400">Category</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Video Player */}
+            {currentSubTopic && currentSubTopic.video_url && (
+              <div className="bg-gray-800 rounded-lg p-6">
+                <h3 className="text-lg font-semibold text-white mb-4">{currentSubTopic.title}</h3>
+                <VideoPlayer 
+                  videoUrl={currentSubTopic.video_url}
+                  title={currentSubTopic.title}
+                />
+                <p className="text-gray-300 mt-4">{currentSubTopic.description}</p>
+              </div>
+            )}
+
+            {/* Course Content */}
+            {lessons.length > 0 && (
+              <div className="bg-gray-800 rounded-lg p-6">
+                <h2 className="text-xl font-semibold text-white mb-4">Course Content</h2>
+                <div className="space-y-4">
+                  {lessons.map((lesson, index) => (
+                    <div key={lesson.id} className="border border-gray-700 rounded-lg p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h3 className="text-lg font-medium text-white">
+                            {index + 1}. {lesson.title}
+                          </h3>
+                          <p className="text-gray-400 text-sm mt-1">{lesson.description}</p>
+                        </div>
+                        <button
+                          onClick={() => handleLessonSelect(lesson)}
+                          className={`px-4 py-2 rounded-lg text-sm transition-colors ${
+                            selectedLesson?.id === lesson.id
+                              ? 'bg-blue-600 text-white'
+                              : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                          }`}
+                        >
+                          {selectedLesson?.id === lesson.id ? 'Selected' : 'Select'}
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
             )}
           </div>
-          <div className="rounded-xl border border-white/10 bg-gray-900/40 backdrop-blur-md p-6 space-y-2">
-            <h1 className="text-2xl font-bold text-white">{course.title}</h1>
-            <div className="text-gray-300 flex items-center gap-2">
-              <span>By</span>
-              <Link
-                to={`/dashboard/connections/${course.instructorId}`}
-                className="inline-flex items-center gap-2 text-blue-400 hover:underline"
-                title="View instructor profile"
-              >
-                {instructorProfile?.avatarUrl ? (
-                  <img
-                    src={instructorProfile.avatarUrl}
-                    alt={course.instructor}
-                    className="w-6 h-6 rounded-full object-cover border border-white/10"
-                  />
-                ) : null}
-                <span>{course.instructor}</span>
-              </Link>
-            </div>
-            <div className="text-sm text-gray-400">{course.level} • ⭐ {course.rating} • {course.students.toLocaleString()} students</div>
-            <div className="flex items-center gap-3 mt-2">
-              <PriceTag price={course.price} currency={course.currency} />
-              <div className="flex gap-2">
-                {isFree ? (
-                  <button
-                    onClick={handleEnroll}
-                    disabled={actionLoading}
-                    className={`px-4 py-2 rounded-lg font-medium bg-green-500 text-black hover:bg-green-400 ${actionLoading ? 'opacity-70 cursor-not-allowed' : ''}`}
-                  >
-                    {actionLoading ? 'Please wait…' : 'Enroll for Free'}
-                  </button>
-                ) : (
-                  <button
-                    onClick={async () => {
-                      try {
-                        setActionLoading(true);
-                        await openRazorpayCheckout({
-                          amount: (course.price || 0) * 100, // paise
-                          currency: course.currency || 'INR',
-                          name: 'Gnanify',
-                          description: course.title,
-                          notes: { courseId: id },
-                          onSuccess: () => {
-                            setPurchased(true);
-                            try { localStorage.setItem(`course_purchased_${id}`, 'true'); } catch {}
-                            setBuyOpen(false);
-                            setMessage('Payment successful via Razorpay. All lectures unlocked.');
-                          },
-                          onFailure: async () => {
-                            // Fallback to demo purchase flow
-                            await handlePurchase();
-                            setPurchased(true);
-                            try { localStorage.setItem(`course_purchased_${id}`, 'true'); } catch {}
-                            setBuyOpen(false);
-                            setMessage('Purchase successful. All lectures unlocked.');
-                          },
-                        });
-                      } catch (e) {
-                        // Fallback if Razorpay script fails
-                        await handlePurchase();
-                        setPurchased(true);
-                        try { localStorage.setItem(`course_purchased_${id}`, 'true'); } catch {}
-                        setBuyOpen(false);
-                        setMessage('Purchase successful. All lectures unlocked.');
-                      } finally {
-                        setActionLoading(false);
-                      }
-                    }}
-                    disabled={actionLoading}
-                    className={`px-4 py-2 rounded-lg font-medium bg-orange-400 text-black hover:bg-orange-500 ${actionLoading ? 'opacity-70 cursor-not-allowed' : ''}`}
-                  >
-                    {actionLoading ? 'Processing…' : 'Buy Now'}
-                  </button>
-                )}
-              </div>
-            </div>
-            {course.tags?.length ? (
-              <div className="mt-3 flex flex-wrap gap-2">
-                {course.tags.map((t) => (
-                  <span key={t} className="text-xs px-2 py-0.5 rounded-full bg-gray-800 text-gray-200 border border-white/10">
-                    {t}
+
+          {/* Sidebar */}
+          <div className="space-y-6">
+            {/* Course Info */}
+            <div className="bg-gray-800 rounded-lg p-6">
+              <h3 className="text-lg font-semibold text-white mb-4">Course Information</h3>
+              <div className="space-y-3">
+                <div className="flex justify-between">
+                  <span className="text-gray-400">Price:</span>
+                  <span className="text-white font-semibold">
+                    {course.is_free ? 'Free' : `$${course.price || 0}`}
                   </span>
-                ))}
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-400">Difficulty:</span>
+                  <span className="text-white capitalize">{course.difficulty || 'Beginner'}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-400">Status:</span>
+                  <span className="text-white capitalize">{course.status || 'Published'}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-400">Language:</span>
+                  <span className="text-white">{course.language || 'English'}</span>
+                </div>
               </div>
-            ) : null}
-          </div>
-        </div>
-        {/* Right: Lecture List */}
-        <div className="rounded-xl border border-white/10 bg-gray-900/40 backdrop-blur-md p-4">
-          <h2 className="text-lg font-semibold text-white mb-3">Lectures</h2>
-          <LectureList
-            lectures={lectures}
-            currentId={currentLecture?.id}
-            lockedIds={lockedIds}
-            onSelect={(lec) => {
-              if (lockedIds.has(lec.id)) {
-                setBuyOpen(true);
-                return;
-              }
-              setCurrentLecture(lec);
-            }}
-            onOpenNotes={(lec) => {
-              setPdfLecture(lec);
-              setPdfOpen(true);
-            }}
-            renderBelow={(lec) => {
-              const a = assignmentByLectureId.get(lec.id);
-              if (!a) return null;
-              const unlocked = completedSet.has(lec.id);
-              const submitted = !!assignmentSubmitted[a.id];
-              return (
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="text-sm text-white">{a.title}</div>
-                    <div className="text-xs text-gray-400">Assignment related to this lecture</div>
+            </div>
+
+            {/* SubTopics */}
+            {subtopics.length > 0 && (
+              <div className="bg-gray-800 rounded-lg p-6">
+                <h3 className="text-lg font-semibold text-white mb-4">
+                  {selectedLesson?.title || 'Lessons'}
+                </h3>
+                <div className="space-y-2">
+                  {subtopics.map((subtopic, index) => (
+                    <button
+                      key={subtopic.id}
+                      onClick={() => handleSubTopicSelect(subtopic)}
+                      className={`w-full text-left p-3 rounded-lg transition-colors ${
+                        currentSubTopic?.id === subtopic.id
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm">
+                          {index + 1}. {subtopic.title}
+                        </span>
+                        {subtopic.is_preview && (
+                          <span className="text-xs bg-yellow-600 text-white px-2 py-1 rounded">
+                            Preview
+                          </span>
+                        )}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Progress */}
+            {isEnrolled && (
+              <div className="bg-gray-800 rounded-lg p-6">
+                <h3 className="text-lg font-semibold text-white mb-4">Your Progress</h3>
+                <div className="space-y-3">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-400">Progress</span>
+                    <span className="text-white">{progress}%</span>
                   </div>
-                  <div className="flex gap-2">
-                    <button
-                      className={`px-3 py-1.5 rounded-md text-sm font-medium ${unlocked ? 'bg-blue-500 text-black hover:bg-blue-400' : 'bg-gray-700 text-gray-300 cursor-not-allowed'}`}
-                      disabled={!unlocked}
-                      onClick={() => {
-                        setMcqAssignment(a);
-                        setMcqResult(null);
-                        setMcqOpen(true);
-                      }}
-                    >
-                      {unlocked ? 'Open' : 'Locked'}
-                    </button>
-                    <button
-                      className={`px-3 py-1.5 rounded-md text-sm font-medium ${unlocked ? (submitted ? 'bg-green-600 text-white' : 'bg-emerald-500 text-black hover:bg-emerald-400') : 'bg-gray-700 text-gray-300 cursor-not-allowed'}`}
-                      disabled={!unlocked}
-                      onClick={() => {
-                        const next = { ...assignmentSubmitted, [a.id]: true };
-                        setAssignmentSubmitted(next);
-                        try { localStorage.setItem(`course_assignments_${id}`, JSON.stringify(next)); } catch {}
-                        setMessage(`${a.title} submitted (demo).`);
-                      }}
-                    >
-                      {submitted ? 'Submitted' : 'Submit'}
-                    </button>
+                  <div className="w-full bg-gray-700 rounded-full h-2">
+                    <div 
+                      className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                      style={{ width: `${progress}%` }}
+                    ></div>
                   </div>
                 </div>
-              );
-            }}
-          />
-          {!isFree ? (
-            <div className="mt-3 text-xs text-gray-400">Locked lectures require purchase.</div>
-          ) : null}
-          {/* Timeline + Certificate */}
-          <div className="mt-5">
-            <h3 className="text-sm font-medium text-white mb-2">Progress</h3>
-            {(() => {
-              const totalLectures = lectures.length;
-              const completedCount = lectures.filter((l) => completedSet.has(l.id)).length;
-              const totalAssignments = derivedAssignments.length;
-              const submittedCount = Object.values(assignmentSubmitted).filter(Boolean).length;
-              const totalUnits = Math.max(1, totalLectures + totalAssignments);
-              const completedUnits = completedCount + submittedCount;
-              const combinedPct = Math.floor((completedUnits / totalUnits) * 100);
-              // Keep certificate gating strict: all lectures 100% AND all assignments submitted
-              const overallLecturesPct = Math.floor((completedCount / Math.max(1, totalLectures)) * 100);
-              const allAssignmentsSubmitted = submittedCount >= totalAssignments;
-              const certificateReady = overallLecturesPct === 100 && allAssignmentsSubmitted;
-              return (
-                <div>
-                  <div className="w-full h-2 bg-gray-800 rounded">
-                    <div className="h-2 bg-green-500 rounded" style={{ width: `${combinedPct}%` }} />
-                  </div>
-                  <div className="mt-2 text-xs text-gray-300">Overall: {combinedPct}% completed (Lectures {completedCount}/{totalLectures}, Assignments {submittedCount}/{totalAssignments})</div>
-                  <div className="mt-3 flex gap-2 items-center">
-                    <button
-                      disabled={overallLecturesPct < 100 || !allAssignmentsSubmitted}
-                      className={`px-3 py-1.5 rounded-md text-sm font-medium ${overallLecturesPct < 100 || !allAssignmentsSubmitted ? 'bg-gray-700 text-gray-300 cursor-not-allowed' : 'bg-emerald-500 text-black hover:bg-emerald-400'}`}
-                      onClick={() => setMessage('Certificate generated (demo).')}
-                    >
-                      {overallLecturesPct < 100 || !allAssignmentsSubmitted ? 'Certificate locked' : 'Get Certificate'}
-                    </button>
-                  </div>
-                </div>
-              );
-            })()}
+              </div>
+            )}
           </div>
-          {/* Assignments are rendered inline under each lecture above */}
         </div>
       </div>
-
-      <div className="rounded-xl border border-white/10 bg-gray-900/40 backdrop-blur-md p-6">
-        <h2 className="text-lg font-semibold text-white mb-2">About this course</h2>
-        <p className="text-gray-300 whitespace-pre-wrap">{course.description}</p>
-      </div>
-
-      {/* Side-by-side layout already includes lectures; no duplicate section needed. */}
-
-      {message ? (
-        <div className="rounded-md border border-white/10 bg-gray-800/60 p-3 text-sm text-gray-100">
-          {message}
-        </div>
-      ) : null}
-
-      <BuyPrompt
-        open={!isFree && !purchased && buyOpen}
-        price={course.price}
-        onClose={() => setBuyOpen(false)}
-        onBuy={async () => {
-          await handlePurchase();
-          setPurchased(true);
-          setBuyOpen(false);
-          setMessage('Purchase successful. All lectures unlocked.');
-        }}
-      />
-
-      <NotesPdfModal
-        open={pdfOpen}
-        pdfUrl={pdfLecture?.notesPdfUrl}
-        title={pdfLecture ? `Notes: ${pdfLecture.title}` : 'Notes'}
-        onClose={() => setPdfOpen(false)}
-      />
-
-      <AssignmentMcqModal
-        open={mcqOpen}
-        assignment={mcqAssignment}
-        onClose={() => setMcqOpen(false)}
-        onSubmit={({ score, total, correct }) => {
-          // Mark this assignment as submitted and show marks
-          if (mcqAssignment) {
-            const next = { ...assignmentSubmitted, [mcqAssignment.id]: true };
-            setAssignmentSubmitted(next);
-            try { localStorage.setItem(`course_assignments_${id}`, JSON.stringify(next)); } catch {}
-          }
-          setMcqResult({ score, total, correct });
-          setMcqOpen(false);
-          setMessage(`Assignment submitted. Score: ${score}% (${correct}/${total}).`);
-        }}
-      />
     </div>
   );
 }

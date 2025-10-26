@@ -22,7 +22,7 @@ export default function ResumeTemplatePicker() {
 
   const onPick = async (tpl) => {
     const created = await resumeApi.create({ title: 'Untitled Resume', template_key: tpl.key });
-    navigate(`/dashboard/resume/${created.id}/edit`);
+    navigate(`/resume/${created.id}/edit`);
   };
 
   return (

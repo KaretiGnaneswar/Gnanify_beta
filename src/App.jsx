@@ -1,6 +1,6 @@
-import React from "react";
 import { BrowserRouter as Router } from "react-router-dom";
-import { ErrorBoundary } from "@/components/common/ErrorBoundary";
+import { useEffect } from "react";
+import { ErrorBoundary } from "@/components";
 import { AppRoutes } from "@/routes/AppRoutes";
 import { PublicRoutes } from "@/routes/PublicRoutes";
 import { AnalyticsListener } from "@/lib/AnalyticsListener";
@@ -8,6 +8,7 @@ import { AuthProvider, useAuth } from "@/context/AuthContext";
 
 const Main = () => {
   const { isAuthed } = useAuth();
+  // Do not auto-redirect here; let routes handle navigation and components navigate explicitly after login
   return isAuthed ? <AppRoutes /> : <PublicRoutes />;
 };
 

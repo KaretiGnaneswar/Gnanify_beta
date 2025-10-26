@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import SearchBar from '@/components/Connections/SearchBar';
-import UserCard from '@/components/Connections/UserCard';
-import { createServiceClient } from '@/lib/api/client';
-import { config } from '@/lib/config';
+import SearchBar from '@/components/features/connections/SearchBar';
+import { UserCard } from '@/components';
+import { listConnections } from '@/services/connections.dummy';
 
 export default function ConnectionsPage() {
   const [query, setQuery] = useState('');
@@ -12,21 +11,8 @@ export default function ConnectionsPage() {
   const runSearch = async () => {
     setLoading(true);
     try {
-      const client = createServiceClient(config.apiBaseUrl, {
-        getToken: () => localStorage.getItem('auth_token'),
-      });
-      const path = `/connections/users/${query ? `?q=${encodeURIComponent(query)}` : ''}`;
-      const data = await client.get(path);
-      const mapped = (data?.results || []).map((u) => ({
-        id: u.id,
-        name: u.name || (u.email ? u.email.split('@')[0] : 'User'),
-        title: u.role === 'admin' ? 'Admin' : (u.role === 'contributor' ? 'Contributor' : 'Member'),
-        location: '',
-        avatarUrl: `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(u.name || u.email || 'User')}`,
-        connected: false,
-        skills: [],
-      }));
-      setUsers(mapped);
+      const data = await listConnections(query);
+      setUsers(data);
     } finally {
       setLoading(false);
     }
