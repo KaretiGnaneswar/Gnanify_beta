@@ -1,13 +1,48 @@
-
 import { FaFacebookF, FaTwitter, FaLinkedinIn, FaInstagram } from "react-icons/fa";
 import { MdEmail, MdLocationOn } from "react-icons/md";
+import { motion } from "framer-motion";
 
 const Footer = () => {
+  // Map link names to section IDs
+  const links = [
+    { name: "Home", id: "hero" },
+    { name: "Features", id: "features" },
+    { name: "About Us", id: "about" },
+    { name: "Our Team", id: "team" }
+  ];
+
+  const handleScroll = (id) => {
+    const element = document.getElementById(id);
+    if (element) {
+      const offset = 80; // adjust for fixed navbar
+      const elementPosition = element.getBoundingClientRect().top + window.pageYOffset;
+      window.scrollTo({
+        top: elementPosition - offset,
+        behavior: "smooth",
+      });
+    }
+  };
+
   return (
-    <footer className="bg-gray-900 text-gray-300 py-12 px-4 sm:px-6 md:px-20 border-t border-gray-800">
+    <footer className="bg-gray-900 text-gray-300 py-24 px-4 sm:px-6 md:px-20 relative">
+      {/* Large Gradient Background Text */}
+      <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 text-center pointer-events-none select-none z-0">
+        <h1
+          className="text-[12rem] font-extrabold leading-none whitespace-nowrap text-gray-800"
+          style={{
+            background: "linear-gradient(to bottom, rgba(55,65,81,1), rgba(55,65,81,0))",
+            WebkitBackgroundClip: "text",
+            WebkitTextFillColor: "transparent",
+            opacity: 0.6,
+          }}
+        >
+          GNANIFY
+        </h1>
+        <p className="text-3xl font-semibold text-gray-400 mt-2">Dare to Join</p>
+      </div>
 
       {/* Desktop Layout */}
-      <div className="hidden md:grid max-w-7xl mx-auto grid-cols-4 gap-8">
+      <div className="hidden md:grid md:grid-cols-4 gap-8 relative z-10">
         {/* About */}
         <div>
           <h3 className="text-lg font-semibold mb-4 text-white">Gnanify</h3>
@@ -24,11 +59,14 @@ const Footer = () => {
         <div>
           <h3 className="text-lg font-semibold mb-4 text-white">Quick Links</h3>
           <ul className="space-y-2">
-            {["Home", "About Us", "Our Team", "Features", "Courses"].map((link) => (
-              <li key={link}>
-                <a href={`#${link.toLowerCase().replace(" ", "-")}`} className="hover:text-orange-500 transition">
-                  {link}
-                </a>
+            {links.map((link) => (
+              <li key={link.name}>
+                <button
+                  onClick={() => handleScroll(link.id)}
+                  className="hover:text-orange-500 transition-all duration-300"
+                >
+                  {link.name}
+                </button>
               </li>
             ))}
           </ul>
@@ -40,33 +78,54 @@ const Footer = () => {
           <ul className="space-y-2">
             <li className="flex items-center gap-2">
               <MdEmail className="text-orange-500" />
-              <a href="mailto:support@gnanify.com" className="hover:text-orange-500 transition">
+              <a
+                href="mailto:support@gnanify.com"
+                className="hover:text-orange-500 transition-all duration-300"
+              >
                 Email Support
               </a>
             </li>
-            <li><a href="#faq" className="hover:text-orange-500 transition">FAQ</a></li>
-            <li><a href="#contact" className="hover:text-orange-500 transition">Contact Us</a></li>
+            <li>
+              <button
+                onClick={() => handleScroll("faq")}
+                className="hover:text-orange-500 transition-all duration-300"
+              >
+                FAQ
+              </button>
+            </li>
+            <li>
+              <button
+                onClick={() => handleScroll("contact")}
+                className="hover:text-orange-500 transition-all duration-300"
+              >
+                Contact Us
+              </button>
+            </li>
           </ul>
         </div>
 
         {/* Social */}
         <div>
           <h3 className="text-lg font-semibold mb-4 text-white">Follow Us</h3>
-          <ul className="flex space-x-4 text-xl mb-4">
+          <ul className="flex space-x-4 text-2xl mb-4">
             {[FaFacebookF, FaTwitter, FaLinkedinIn, FaInstagram].map((Icon, idx) => (
-              <li key={idx}>
-                <a href="#" className="hover:text-orange-500 transition"><Icon /></a>
-              </li>
+              <motion.li
+                key={idx}
+                whileHover={{ scale: 1.2, color: "#f97316" }}
+                transition={{ type: "spring", stiffness: 300 }}
+              >
+                <a href="#"><Icon /></a>
+              </motion.li>
             ))}
           </ul>
-          <p className="text-gray-400 text-sm">Stay connected with us for updates and news.</p>
+          <p className="text-gray-400 text-sm">Stay connected for updates & news.</p>
         </div>
       </div>
 
       {/* Mobile Layout */}
-      <div className="md:hidden flex flex-col gap-6">
-        {/* About Card */}
-        <div className="bg-gray-800/80 backdrop-blur-md rounded-2xl p-6 shadow-lg border border-gray-700">
+      <div className="md:hidden flex flex-col gap-6 relative z-10">
+        {/** About Card **/}
+        <div className="bg-gray-800/70 backdrop-blur-md rounded-2xl p-6 shadow-lg border border-gray-700">
           <h3 className="text-lg font-semibold mb-2 text-white">Gnanify</h3>
           <p className="text-gray-300 mb-4">
             Learn, Grow, and Connect with students & professionals worldwide.
@@ -76,47 +135,76 @@ const Footer = () => {
           </p>
         </div>
 
-        {/* Quick Links Card */}
-        <div className="bg-gray-800/80 backdrop-blur-md rounded-2xl p-6 shadow-lg border border-gray-700">
+        {/** Quick Links Card **/}
+        <div className="bg-gray-800/70 backdrop-blur-md rounded-2xl p-6 shadow-lg border border-gray-700">
           <h3 className="text-lg font-semibold mb-4 text-white">Quick Links</h3>
           <ul className="flex flex-col gap-2">
-            {["Home", "About Us", "Our Team", "Features", "Courses"].map((link) => (
-              <li key={link}>
-                <a href={`#${link.toLowerCase().replace(" ", "-")}`} className="hover:text-orange-500 transition">
-                  {link}
-                </a>
+            {links.map((link) => (
+              <li key={link.name}>
+                <button
+                  onClick={() => handleScroll(link.id)}
+                  className="hover:text-orange-500 transition-all duration-300"
+                >
+                  {link.name}
+                </button>
               </li>
             ))}
           </ul>
         </div>
 
-        {/* Support Card */}
-        <div className="bg-gray-800/80 backdrop-blur-md rounded-2xl p-6 shadow-lg border border-gray-700">
+        {/** Support Card **/}
+        <div className="bg-gray-800/70 backdrop-blur-md rounded-2xl p-6 shadow-lg border border-gray-700">
           <h3 className="text-lg font-semibold mb-4 text-white">Support</h3>
           <ul className="flex flex-col gap-2">
             <li className="flex items-center gap-2">
               <MdEmail className="text-orange-500" />
-              <a href="mailto:support@gnanify.com" className="hover:text-orange-500 transition">Email Support</a>
+              <a
+                href="mailto:support@gnanify.com"
+                className="hover:text-orange-500 transition-all duration-300"
+              >
+                Email Support
+              </a>
             </li>
-            <li><a href="#faq" className="hover:text-orange-500 transition">FAQ</a></li>
-            <li><a href="#contact" className="hover:text-orange-500 transition">Contact Us</a></li>
+            <li>
+              <button
+                onClick={() => handleScroll("faq")}
+                className="hover:text-orange-500 transition-all duration-300"
+              >
+                FAQ
+              </button>
+            </li>
+            <li>
+              <button
+                onClick={() => handleScroll("contact")}
+                className="hover:text-orange-500 transition-all duration-300"
+              >
+                Contact Us
+              </button>
+            </li>
           </ul>
         </div>
 
-        {/* Social Card */}
-        <div className="bg-gray-800/80 backdrop-blur-md rounded-2xl p-6 shadow-lg border border-gray-700 flex flex-col items-center">
+        {/** Social Card **/}
+        <div className="bg-gray-800/70 backdrop-blur-md rounded-2xl p-6 shadow-lg border border-gray-700 flex flex-col items-center">
           <h3 className="text-lg font-semibold mb-4 text-white">Follow Us</h3>
-          <div className="flex space-x-4 text-xl mb-4">
+          <div className="flex space-x-4 text-2xl mb-4">
             {[FaFacebookF, FaTwitter, FaLinkedinIn, FaInstagram].map((Icon, idx) => (
-              <a key={idx} href="#" className="hover:text-orange-500 transition"><Icon /></a>
+              <motion.a
+                key={idx}
+                href="#"
+                whileHover={{ scale: 1.2, color: "#f97316" }}
+                transition={{ type: "spring", stiffness: 300 }}
+              >
+                <Icon />
+              </motion.a>
             ))}
           </div>
-          <p className="text-gray-400 text-sm text-center">Stay connected with us for updates and news.</p>
+          <p className="text-gray-400 text-sm text-center">Stay connected for updates & news.</p>
         </div>
       </div>
 
       {/* Bottom Note */}
-      <div className="mt-12 text-center text-gray-500 text-sm border-t border-gray-800 pt-6">
+      <div className="mt-16 text-center text-gray-500 text-sm border-t border-gray-800 pt-6 relative z-10">
         &copy; {new Date().getFullYear()} Gnanify. All rights reserved.
       </div>
     </footer>

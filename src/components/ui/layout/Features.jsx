@@ -1,4 +1,3 @@
-
 import { motion } from "framer-motion";
 import { FaBook, FaBlog, FaUsers, FaPuzzlePiece, FaFileAlt, FaChartLine } from "react-icons/fa";
 
@@ -42,26 +41,28 @@ const featuresData = [
 ];
 
 const Features = () => (
-  <section id="features" className="py-16 sm:py-20 bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 text-white">
-    <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-center mb-10 sm:mb-12">Features</h2>
+  <section id="features" className="py-20 bg-gray-900 text-white relative">
+    <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold text-center mb-16">
+      Features
+    </h2>
 
     {/* ===== Desktop & Tablet Layout ===== */}
-    <div className="hidden md:grid max-w-7xl mx-auto grid-cols-3 gap-8 px-4 sm:px-6">
+    <div className="hidden md:grid max-w-7xl mx-auto grid-cols-3 gap-10 px-4 sm:px-6">
       {featuresData.map((feature, idx) => (
         <motion.div
           key={idx}
-          className="relative p-6 rounded-xl shadow-lg border border-gray-700 bg-gray-900 hover:scale-105 transition-transform duration-300 overflow-hidden"
+          className="relative p-8 rounded-3xl shadow-xl border border-gray-700 bg-gray-800 hover:shadow-2xl transition-all duration-500 cursor-pointer overflow-hidden"
           whileHover={{ scale: 1.05 }}
         >
-          {/* Gradient highlights */}
-          <div className={`absolute -top-6 -left-6 w-24 h-24 rounded-full opacity-30 blur-3xl bg-gradient-to-br ${feature.color}`}></div>
-          <div className={`absolute -bottom-6 -right-6 w-24 h-24 rounded-full opacity-30 blur-3xl bg-gradient-to-br ${feature.color}`}></div>
+          {/* Gradient Blobs */}
+          <div className={`absolute -top-8 -left-8 w-28 h-28 rounded-full opacity-30 blur-3xl bg-gradient-to-br ${feature.color}`}></div>
+          <div className={`absolute -bottom-8 -right-8 w-28 h-28 rounded-full opacity-30 blur-3xl bg-gradient-to-br ${feature.color}`}></div>
 
-          <div className="flex items-center mb-4 space-x-4">
+          <div className="flex items-center mb-4 space-x-4 relative z-10">
             <div className="text-white">{feature.icon}</div>
-            <h3 className="text-xl font-semibold">{feature.title}</h3>
+            <h3 className="text-2xl font-semibold">{feature.title}</h3>
           </div>
-          <p className="text-gray-300">{feature.desc}</p>
+          <p className="text-gray-300 text-base relative z-10">{feature.desc}</p>
         </motion.div>
       ))}
     </div>
@@ -71,17 +72,16 @@ const Features = () => (
       {featuresData.map((feature, idx) => (
         <motion.div
           key={idx}
-          className="flex flex-col items-start bg-gray-900 p-4 rounded-xl shadow-lg border border-gray-700 hover:scale-105 transition-transform duration-300 relative overflow-hidden"
-          whileHover={{ scale: 1.02 }}
+          className="flex flex-col items-start bg-gray-800 p-6 rounded-2xl shadow-lg border border-gray-700 hover:shadow-2xl transition-transform duration-300 relative overflow-hidden"
+          whileHover={{ scale: 1.03 }}
         >
-          {/* Gradient background */}
-          <div className={`absolute -top-4 -left-4 w-16 h-16 rounded-full opacity-30 blur-2xl bg-gradient-to-br ${feature.color}`}></div>
+          <div className={`absolute -top-6 -left-6 w-20 h-20 rounded-full opacity-30 blur-2xl bg-gradient-to-br ${feature.color}`}></div>
 
-          <div className="flex items-center mb-3 space-x-3">
+          <div className="flex items-center mb-3 space-x-3 relative z-10">
             <div className="text-white">{feature.icon}</div>
-            <h3 className="text-lg font-semibold">{feature.title}</h3>
+            <h3 className="text-lg sm:text-xl font-semibold">{feature.title}</h3>
           </div>
-          <p className="text-gray-300 text-sm">{feature.desc}</p>
+          <p className="text-gray-300 text-sm relative z-10">{feature.desc}</p>
         </motion.div>
       ))}
     </div>

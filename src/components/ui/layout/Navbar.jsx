@@ -7,7 +7,7 @@ const Navbar = ({ onLoginClick }) => {
 
   useEffect(() => {
     const handleScroll = () => {
-      const sections = ["hero", "features", "about", "team", "footer"];
+      const sections = ["hero", "features", "about", "team", "login", "contributor"];
       let current = "hero";
       sections.forEach((id) => {
         const section = document.getElementById(id);
@@ -27,8 +27,16 @@ const Navbar = ({ onLoginClick }) => {
       setIsOpen(false);
       return;
     }
-    const element = document.getElementById(id);
-    if (element) element.scrollIntoView({ behavior: "smooth" });
+    
+    const element = id === "hero" ? document.body : document.getElementById(id);
+    if (element) {
+      const offset = 80;
+      const elementPosition = element === document.body ? 0 : element.getBoundingClientRect().top + window.pageYOffset;
+      window.scrollTo({
+        top: elementPosition - offset,
+        behavior: "smooth"
+      });
+    }
     setIsOpen(false);
   };
 
@@ -36,7 +44,6 @@ const Navbar = ({ onLoginClick }) => {
     <nav className="fixed top-0 left-0 right-0 z-50">
       <div className="backdrop-blur-md bg-gray-900/60 text-white shadow-lg border-b border-white/10 transition-all duration-300">
         <div className="max-w-7xl mx-auto flex justify-between items-center py-4 px-6">
-          {/* Logo */}
           <div
             className="text-2xl font-bold text-orange-400 cursor-pointer hover:scale-105 transition-transform"
             onClick={() => scrollToSection("hero")}
@@ -44,9 +51,8 @@ const Navbar = ({ onLoginClick }) => {
             Gnanify
           </div>
 
-          {/* Desktop Links */}
           <ul className="hidden md:flex gap-8 font-medium">
-            {["hero", "features", "login", "footer"].map((id) => (
+            {["hero", "features","about", "team", "contributor","login"].map((id) => (
               <li
                 key={id}
                 onClick={() => scrollToSection(id)}
@@ -62,7 +68,6 @@ const Navbar = ({ onLoginClick }) => {
             ))}
           </ul>
 
-          {/* Mobile Hamburger */}
           <div className="md:hidden">
             <button onClick={() => setIsOpen(!isOpen)}>
               {isOpen ? <HiX size={28} /> : <HiMenu size={28} />}
@@ -70,10 +75,9 @@ const Navbar = ({ onLoginClick }) => {
           </div>
         </div>
 
-        {/* Mobile Menu */}
         {isOpen && (
           <ul className="md:hidden flex flex-col gap-4 px-6 pb-6 font-medium bg-gray-900/90 backdrop-blur-md border-t border-white/10">
-            {["hero", "features", "login", "footer"].map((id) => (
+            {["hero", "features", "login", "contributor" ].map((id) => (
               <li
                 key={id}
                 onClick={() => scrollToSection(id)}
