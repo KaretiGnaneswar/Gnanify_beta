@@ -45,7 +45,7 @@ const steps = [
   },
 ];
 
-const Contributor = () => {
+const Contributor = ({onLoginClick}) => {
   return (
     <section
       id="contributor"
@@ -105,6 +105,7 @@ const Contributor = () => {
           href="#"
           whileHover={{ scale: 1.08 }}
           whileTap={{ scale: 0.97 }}
+          onClick={onLoginClick}
           className="inline-block px-8 py-4 rounded-full bg-gradient-to-r from-orange-400 to-orange-600 text-white font-semibold shadow-[0_0_20px_rgba(255,140,0,0.4)] hover:shadow-[0_0_30px_rgba(255,140,0,0.6)] transition-all duration-300"
         >
           Become a Contributor
