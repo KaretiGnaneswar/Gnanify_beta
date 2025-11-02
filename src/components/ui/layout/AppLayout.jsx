@@ -10,7 +10,6 @@ const AppLayout = () => {
       <LeftSidebar />
       <div className="ml-20 mt-16 p-4">
         <Outlet />
-<Footer />
       </div>
       
     </div>
