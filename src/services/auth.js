@@ -38,11 +38,13 @@ async function login(email, password) {
     }
     return response;
   } catch (error) {
+    // If this is our ApiError from the API client, preserve it so UI can read error.payload
+    if (error && error.payload) {
+      console.error('Login error:', error.payload?.error || error.payload?.message || 'API Error');
+      throw error;
+    }
     const errorMessage =
-      error.response?.data?.message ||
-      error.response?.data?.error ||
-      error.message ||
-      'Login failed. Please check your credentials.';
+      error?.message || 'Login failed. Please check your credentials.';
     console.error('Login error:', errorMessage);
     throw new Error(errorMessage);
   }
@@ -61,11 +63,11 @@ async function signup(userData) {
     }
     return response;
   } catch (error) {
-    const errorMessage =
-      error.response?.data?.message ||
-      error.response?.data?.error ||
-      error.message ||
-      'Signup failed. Please try again.';
+    if (error && error.payload) {
+      console.error('Signup error:', error.payload?.error || error.payload?.message || 'API Error');
+      throw error;
+    }
+    const errorMessage = error?.message || 'Signup failed. Please try again.';
     console.error('Signup error:', errorMessage);
     throw new Error(errorMessage);
   }
