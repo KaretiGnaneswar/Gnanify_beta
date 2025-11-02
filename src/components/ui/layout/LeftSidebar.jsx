@@ -11,12 +11,14 @@ const LeftSidebar = () => {
 
   const buttons = [
     { icon: "🏠", title: "Home", path: "/" },
-    { icon: "💻", title: "Compiler", path: "/compiler" },
+    // { icon: "💻", title: "Compiler", path: "/compiler" },
+    
     { icon: "📄", title: "Resume", path: "/resume" },
     { icon: "📰", title: "Tech News", path: "/technews" },
     { icon: "📝", title: "Blogs", path: "/blogs" },
     { icon: "📚", title: "Courses", path: "/courses" },
     { icon: "🤝", title: "Connections", path: "/connections" },
+    { icon: "📚", title: "Store", path: "/store" },
     { icon: "⚙️", title: "Settings", path: "/settings" },
     { icon: "🚪", title: "Logout" },
   ];
@@ -35,7 +37,7 @@ const LeftSidebar = () => {
   };
 
   return (
-    <div className="fixed top-16 left-0 h-[calc(100vh-4rem)] w-15 flex flex-col justify-start backdrop-blur-md bg-gray-900/60 border-r border-white/10 shadow-lg z-[1000] py-2 items-center">
+    <div className="fixed top-16 left-0 h-[calc(100vh-4rem)] w-15 flex flex-col justify-start backdrop-blur-md bg-white/70 border-r border-black/10 shadow-lg z-[1000] py-2 items-center dark:bg-gray-900/60 dark:border-white/10">
       {buttons.map((btn) => (
         <div key={btn.title} className="flex flex-col items-center my-2">
           {btn.path ? (
@@ -46,11 +48,13 @@ const LeftSidebar = () => {
                 `flex flex-col items-center`}
             >
               <div className={`flex items-center justify-center w-12 h-12 rounded transition-colors duration-200 ${
-                window.location.pathname === btn.path ? 'bg-orange-400 text-white' : 'hover:bg-gray-800/70 text-white'
+                window.location.pathname === btn.path
+                  ? 'bg-orange-500 text-white dark:bg-orange-400 dark:text-black'
+                  : 'hover:bg-neutral-100 text-neutral-800 dark:hover:bg-gray-800/70 dark:text-white'
               }`}>
                 {btn.icon}
               </div>
-              <span className="text-xs mt-1 text-white">{btn.title}</span>
+              <span className="text-xs mt-1 text-neutral-800 dark:text-white">{btn.title}</span>
             </NavLink>
           ) : (
             <button
@@ -58,10 +62,10 @@ const LeftSidebar = () => {
               onClick={() => handleClick(btn.title, btn.path)}
               className={`flex flex-col items-center`}
             >
-              <div className={`flex items-center justify-center w-12 h-12 rounded transition-colors duration-200 hover:bg-gray-800/70 text-white`}>
+              <div className={`flex items-center justify-center w-12 h-12 rounded transition-colors duration-200 hover:bg-neutral-100 text-neutral-800 dark:hover:bg-gray-800/70 dark:text-white`}>
                 {btn.icon}
               </div>
-              <span className="text-xs mt-1 text-white">{btn.title}</span>
+              <span className="text-xs mt-1 text-neutral-800 dark:text-white">{btn.title}</span>
             </button>
           )}
         </div>

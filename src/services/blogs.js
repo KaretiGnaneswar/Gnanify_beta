@@ -2,22 +2,40 @@ import { createServiceClient } from '@/lib/api/client';
 import { config } from '@/lib/config';
 import { getToken } from '@/lib/auth/token';
 
+// Create a client with auth token
 const client = createServiceClient(config.apiBaseUrl, { getToken });
 
 export const blogsApi = {
+  // Fetch all blogs
   list: () => client.get('/blogs/'),
+
+  // Create a new blog
   create: (payload) => client.post('/blogs/', payload),
+
+  // Get a single blog detail
   detail: (id) => client.get(`/blogs/${id}/`),
+
+  // Like or dislike a blog
   react: (id, reaction) => client.post(`/blogs/${id}/react/`, { reaction }),
-  comments: (id) => client.get(`/blogs/${id}/comments/`),
-  addComment: (id, text) => client.post(`/blogs/${id}/comments/`, { text }),
+
+  // Get all comments for a blog
+  comments: async (id) => {
+    const blog = await client.get(`/blogs/${id}/`);
+    return blog?.comments || [];
+  },
+
+  // Add a comment
+  addComment: (id, text) => client.post(`/blogs/${id}/comment/`, { text }),
+
+  // Delete a blog
   delete: (id) => client.del(`/blogs/${id}/`),
 };
 
-// Helper functions for blogs
+// Helper functions for frontend use
 export async function getBlogs() {
   try {
-    return await blogsApi.list();
+    const res = await blogsApi.list();
+    return res;
   } catch (error) {
     console.error('Error fetching blogs:', error);
     return [];
@@ -55,7 +73,7 @@ export async function getBlogComments(id) {
   try {
     return await blogsApi.comments(id);
   } catch (error) {
-    console.error('Error fetching blog comments:', error);
+    console.error('Error fetching comments:', error);
     return [];
   }
 }

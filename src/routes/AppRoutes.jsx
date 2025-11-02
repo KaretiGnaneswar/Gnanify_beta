@@ -19,6 +19,7 @@ const BlogHomePage = lazy(() => import("@/pages/Blogs/BlogHomePage"));
 const BlogIndetailPage = lazy(() => import("@/pages/Blogs/BlogIndetailPage"));
 const Timetable = lazy(() => import("@/pages/TimeTable/timetable"));
 const MessagesPage = lazy(() => import("@/pages/Messages/MessagesPage"));
+const StorePage = lazy(() => import("@/pages/Store/Storehomepage"));
 
 export function AppRoutes() {
   return (
@@ -44,6 +45,7 @@ export function AppRoutes() {
           <Route path="connections/:id" element={<ConnectionDetailPage />} />
           <Route path="messages" element={<MessagesPage />} />
           <Route path="technews" element={<TechNewsPage />} />
+          <Route path="store" element={<StorePage />} />
           <Route path="settings" element={<SettingsPage />} />
         </Route>
 

@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { createServiceClient } from '@/lib/api/client';
-import { config } from '@/lib/config';
+import { getConnectionStatus, sendConnectionRequest } from '@/services/connections';
 
 // status: 'none' | 'pending' | 'connected'
 export default function ConnectButton({ userId, initialConnected }) {
@@ -12,10 +11,7 @@ export default function ConnectButton({ userId, initialConnected }) {
     let mounted = true;
     (async () => {
       try {
-        const client = createServiceClient(config.apiBaseUrl, {
-          getToken: () => localStorage.getItem('auth_token'),
-        });
-        const s = await client.get(`/connections/status/${userId}/`);
+        const s = await getConnectionStatus(userId);
         const map = {
           connected: 'connected',
           pending_outgoing: 'pending',
@@ -36,30 +32,33 @@ export default function ConnectButton({ userId, initialConnected }) {
   useEffect(() => {
     if (status !== 'pending') return;
     let alive = true;
-    const client = createServiceClient(config.apiBaseUrl, {
-      getToken: () => localStorage.getItem('auth_token'),
-    });
     const tick = async () => {
       try {
-        const s = await client.get(`/connections/status/${userId}/`);
+        const s = await getConnectionStatus(userId);
         const next = s?.status === 'connected' ? 'connected' : (s?.status === 'none' ? 'none' : 'pending');
         if (alive && next !== status) setStatus(next);
       } catch {}
     };
-    const id = setInterval(tick, 5000);
+    const id = setInterval(tick, 2000);
     // also do an immediate check once
     tick();
-    return () => { alive = false; clearInterval(id); };
+    const onFocus = () => tick();
+    const onVisibility = () => { if (!document.hidden) tick(); };
+    window.addEventListener('focus', onFocus);
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => {
+      alive = false;
+      clearInterval(id);
+      window.removeEventListener('focus', onFocus);
+      document.removeEventListener('visibilitychange', onVisibility);
+    };
   }, [status, userId]);
 
   // Listen for global updates (e.g., when accept happens elsewhere in the UI)
   useEffect(() => {
     const handler = async () => {
       try {
-        const client = createServiceClient(config.apiBaseUrl, {
-          getToken: () => localStorage.getItem('auth_token'),
-        });
-        const s = await client.get(`/connections/status/${userId}/`);
+        const s = await getConnectionStatus(userId);
         const map = { connected: 'connected', pending_outgoing: 'pending', pending_incoming: 'pending', none: 'none', self: 'connected' };
         setStatus(map[s?.status] ?? 'none');
       } catch {}
@@ -72,11 +71,7 @@ export default function ConnectButton({ userId, initialConnected }) {
     if (status !== 'none') return; // if pending/connected, do nothing
     try {
       setLoading(true);
-      const client = createServiceClient(config.apiBaseUrl, {
-        getToken: () => localStorage.getItem('auth_token'),
-      });
-      // Send a connection request; backend increases following_count for current user
-      await client.post('/connections/requests/', { to_user_id: userId });
+      await sendConnectionRequest(userId);
       setStatus('pending');
     } finally {
       setLoading(false);

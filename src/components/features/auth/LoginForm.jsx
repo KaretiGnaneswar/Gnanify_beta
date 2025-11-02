@@ -16,8 +16,8 @@ const LoginForm = ({ switchToSignup }) => {
     setError("");
     setLoading(true);
 
-    const cleanEmail = (email || "").trim().toLowerCase();
-    const cleanPassword = (password || "").trim();
+    const cleanEmail = (email || "").trim();
+    const cleanPassword = password || "";
 
     if (!cleanEmail || !cleanPassword) {
       setError("Enter both email and password");

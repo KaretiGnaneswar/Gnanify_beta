@@ -2,8 +2,8 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { blogsApi } from '@/services/blogs';
 import { UserCard } from '@/components';
-import { createServiceClient } from '@/lib/api/client';
-import { config } from '@/lib/config';
+import { getProfile } from '@/services/auth';
+import { getUsers } from '@/services/connections';
 
 export default function BlogIndetailPage() {
   const { id } = useParams();
@@ -19,6 +19,21 @@ export default function BlogIndetailPage() {
   const [authorLoading, setAuthorLoading] = useState(false);
   const [viewer, setViewer] = useState(null);
   const [deleting, setDeleting] = useState(false);
+
+  const goToAuthorProfile = useCallback(async () => {
+    const name = String(blog?.author || '').trim();
+    if (!name) return;
+    try {
+      const all = await getUsers();
+      const match = (all || []).find((u) => String(u.name || '').toLowerCase() === name.toLowerCase());
+      if (match?.id) {
+        navigate(`/connections/${match.id}`);
+        return;
+      }
+    } catch {}
+    const q = encodeURIComponent(name);
+    navigate(`/connections?query=${q}`);
+  }, [blog?.author, navigate]);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -43,10 +58,7 @@ export default function BlogIndetailPage() {
     let active = true;
     (async () => {
       try {
-        const client = createServiceClient(config.apiBaseUrl, {
-          getToken: () => localStorage.getItem('auth_token'),
-        });
-        const me = await client.get('/core/profile/');
+        const me = await getProfile();
         if (active) setViewer(me || null);
       } catch {
         if (active) setViewer(null);
@@ -55,43 +67,7 @@ export default function BlogIndetailPage() {
     return () => { active = false; };
   }, []);
 
-  // Load author profile if available
-  useEffect(() => {
-    let active = true;
-    async function loadAuthor(aid) {
-      if (!aid) {
-        setAuthor(null);
-        return;
-      }
-      setAuthorLoading(true);
-      try {
-        const client = createServiceClient(config.apiBaseUrl, {
-          getToken: () => localStorage.getItem('auth_token'),
-        });
-        const u = await client.get(`/connections/users/${aid}/`);
-        if (!active) return;
-        const mapped = u && {
-          id: u.id,
-          name: u.name || (u.email ? u.email.split('@')[0] : 'User'),
-          title: u.role === 'admin' ? 'Admin' : (u.role === 'contributor' ? 'Contributor' : 'Member'),
-          location: '',
-          avatarUrl: `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(u.name || u.email || 'User')}`,
-          connected: false,
-          skills: [],
-        };
-        setAuthor(mapped || null);
-      } catch (e) {
-        if (!active) return;
-        setAuthor(null);
-      } finally {
-        if (active) setAuthorLoading(false);
-      }
-    }
-    loadAuthor(blog?.author);
-    return () => {
-      active = false;
-    };
-  }, [blog?.author]);
+  // No separate author profile fetch needed; author comes as string in blog.author
 
   const onReact = async (reaction) => {
     try {
@@ -145,7 +121,7 @@ export default function BlogIndetailPage() {
                     {blog.created_at ? new Date(blog.created_at).toLocaleString() : ''}
                   </div>
                 </div>
-                {viewer && String(viewer.id) === String(blog.author) && (
+                {viewer && String(viewer.name || '') === String(blog.author || '') && (
                   <button
                     onClick={async () => {
                       if (!confirm('Delete this blog post? This cannot be undone.')) return;
@@ -231,23 +207,25 @@ export default function BlogIndetailPage() {
             </div>
           </div>
 
-          {/* Right: Author profile (approx 30%) */}
+          {/* Right: Author info (approx 30%) */}
           <aside className="space-y-3">
             <h3 className="text-sm text-gray-300">Author</h3>
-            {authorLoading && <div className="text-gray-400 text-sm">Loading author...</div>}
-            {!authorLoading && author && <UserCard user={author} />}
-            {!authorLoading && !author && (
-              <div className="rounded-xl border border-white/10 bg-gray-900/40 backdrop-blur-md p-4 flex gap-3 items-center">
-                <img
-                  src={`https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent('User')}`}
-                  alt={'Author'}
-                  className="w-12 h-12 rounded-full object-cover ring-2 ring-white/10"
-                />
-                <div className="flex-1 min-w-0">
-                  <div className="text-white font-medium truncate">Unknown</div>
-                </div>
+            <button
+              type="button"
+              onClick={goToAuthorProfile}
+              className="w-full text-left rounded-xl border border-white/10 bg-gray-900/40 backdrop-blur-md p-4 flex gap-3 items-center hover:bg-gray-900/60 focus:outline-none focus:ring-2 focus:ring-blue-600"
+              title={`View ${String(blog.author || 'author')}'s profile`}
+              aria-label={`View ${String(blog.author || 'author')}'s profile`}
+            >
+              <img
+                src={`https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(String(blog.author || 'User'))}`}
+                alt={String(blog.author || 'Author')}
+                className="w-12 h-12 rounded-full object-cover ring-2 ring-white/10"
+              />
+              <div className="flex-1 min-w-0">
+                <div className="text-white font-medium truncate">{String(blog.author || 'Unknown')}</div>
               </div>
-            )}
+            </button>
           </aside>
         </div>
       )}

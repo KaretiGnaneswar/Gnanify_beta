@@ -23,25 +23,25 @@ a:hover {
 /* Base dark theme to match contributor studio */
 @layer base {
   html, body, #root { @apply h-full; }
-  body { @apply bg-neutral-950 text-white antialiased; }
-  ::selection { @apply bg-orange-400/30; }
+  body { @apply antialiased bg-white text-neutral-900 dark:bg-neutral-950 dark:text-white; }
+  ::selection { @apply bg-orange-300/40 dark:bg-orange-400/30; }
 }
 
 /* Reusable components */
 @layer components {
   .card {
-    @apply bg-neutral-900 border border-neutral-800 rounded-lg;
+    @apply rounded-lg border bg-white border-neutral-200 dark:bg-neutral-900 dark:border-neutral-800;
   }
   .card-body { @apply p-4 md:p-6; }
-  .section-title { @apply text-lg font-semibold text-white; }
+  .section-title { @apply text-lg font-semibold text-neutral-900 dark:text-white; }
 
   .inp {
-    @apply w-full bg-neutral-800 text-white rounded-lg px-3.5 py-2.5 border border-neutral-700 placeholder-neutral-500 focus:border-blue-500 outline-none;
+    @apply w-full rounded-lg px-3.5 py-2.5 border outline-none bg-white text-neutral-900 placeholder-neutral-500 border-neutral-300 focus:border-blue-500 dark:bg-neutral-800 dark:text-white dark:border-neutral-700;
   }
   .btn {
     @apply inline-flex items-center justify-center px-4 py-2.5 rounded-lg font-medium transition-colors;
   }
   .btn-primary { @apply bg-blue-600 hover:bg-blue-700 text-white; }
-  .btn-ghost { @apply bg-transparent hover:bg-neutral-800 text-white; }
-  .btn-warning { @apply bg-orange-400 hover:bg-orange-500 text-black; }
+  .btn-ghost { @apply bg-transparent hover:bg-neutral-100 text-neutral-900 dark:hover:bg-neutral-800 dark:text-white; }
+  .btn-warning { @apply bg-orange-500 hover:bg-orange-600 text-white dark:bg-orange-400 dark:hover:bg-orange-500 dark:text-black; }
 }

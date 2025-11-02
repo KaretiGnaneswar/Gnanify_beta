@@ -60,8 +60,8 @@ export const fetchCourses = async (params = {}) => {
   if (params.status) queryParams.append('status', params.status);
   
   try {
-    // Remove the extra /courses/ from the URL since API_BASE_URL already includes it
-    const response = await fetch(`${API_BASE_URL}/?${queryParams}`, {
+    // Backend expects /api/courses/courses/
+    const response = await fetch(`${API_BASE_URL}/courses/?${queryParams}`, {
       headers: getAuthHeaders(),
     });
     
@@ -95,8 +95,8 @@ export const fetchCourses = async (params = {}) => {
 
 export const fetchCourse = async (courseId) => {
   try {
-    // Remove the extra /courses/ from the URL since API_BASE_URL already includes it
-    const response = await fetch(`${API_BASE_URL}/${courseId}/`, {
+    // Backend expects /api/courses/courses/<id>/
+    const response = await fetch(`${API_BASE_URL}/courses/${courseId}/`, {
       headers: getAuthHeaders(),
     });
     
@@ -125,8 +125,8 @@ export const fetchCourse = async (courseId) => {
 
 export const createCourse = async (courseData) => {
   try {
-    // Remove the extra /courses/ from the URL since API_BASE_URL already includes it
-    const response = await fetch(`${API_BASE_URL}/`, {
+    // Backend expects /api/courses/courses/
+    const response = await fetch(`${API_BASE_URL}/courses/`, {
       method: 'POST',
       headers: getAuthHeaders(),
       body: JSON.stringify(courseData),

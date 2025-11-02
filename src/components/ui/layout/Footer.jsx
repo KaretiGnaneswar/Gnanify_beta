@@ -24,11 +24,11 @@ const Footer = () => {
   };
 
   return (
-    <footer className="bg-gray-900 text-gray-300 py-24 px-4 sm:px-6 md:px-20 relative">
+    <footer className="py-24 px-4 sm:px-6 md:px-20 relative bg-white text-neutral-700 dark:bg-gray-900 dark:text-gray-300">
       {/* Large Gradient Background Text */}
       <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 text-center pointer-events-none select-none z-0">
         <h1
-          className="text-[12rem] font-extrabold leading-none whitespace-nowrap text-gray-800"
+          className="text-[12rem] font-extrabold leading-none whitespace-nowrap text-neutral-200 dark:text-gray-800"
           style={{
             background: "linear-gradient(to bottom, rgba(55,65,81,1), rgba(55,65,81,0))",
             WebkitBackgroundClip: "text",
@@ -38,18 +38,18 @@ const Footer = () => {
         >
           GNANIFY
         </h1>
-        <p className="text-3xl font-semibold text-gray-400 mt-2">Dare to Join</p>
+        <p className="text-3xl font-semibold text-neutral-500 dark:text-gray-400 mt-2">Dare to Join</p>
       </div>
 
       {/* Desktop Layout */}
       <div className="hidden md:grid md:grid-cols-4 gap-8 relative z-10">
         {/* About */}
         <div>
-          <h3 className="text-lg font-semibold mb-4 text-white">Gnanify</h3>
-          <p className="text-gray-400 mb-4">
+          <h3 className="text-lg font-semibold mb-4 text-neutral-900 dark:text-white">Gnanify</h3>
+          <p className="text-neutral-600 dark:text-gray-400 mb-4">
             Learn, Grow, and Connect with students & professionals worldwide.
           </p>
-          <p className="flex items-center gap-2 text-gray-400">
+          <p className="flex items-center gap-2 text-neutral-600 dark:text-gray-400">
             <MdLocationOn className="text-orange-500" />
             123 Knowledge Street, Hyderabad, India
           </p>
@@ -57,13 +57,13 @@ const Footer = () => {
 
         {/* Quick Links */}
         <div>
-          <h3 className="text-lg font-semibold mb-4 text-white">Quick Links</h3>
+          <h3 className="text-lg font-semibold mb-4 text-neutral-900 dark:text-white">Quick Links</h3>
           <ul className="space-y-2">
             {links.map((link) => (
               <li key={link.name}>
                 <button
                   onClick={() => handleScroll(link.id)}
-                  className="hover:text-orange-500 transition-all duration-300"
+                  className="hover:text-orange-600 dark:hover:text-orange-500 transition-all duration-300"
                 >
                   {link.name}
                 </button>
@@ -74,7 +74,7 @@ const Footer = () => {
 
         {/* Support */}
         <div>
-          <h3 className="text-lg font-semibold mb-4 text-white">Support</h3>
+          <h3 className="text-lg font-semibold mb-4 text-neutral-900 dark:text-white">Support</h3>
           <ul className="space-y-2">
             <li className="flex items-center gap-2">
               <MdEmail className="text-orange-500" />
@@ -106,7 +106,7 @@ const Footer = () => {
 
         {/* Social */}
         <div>
-          <h3 className="text-lg font-semibold mb-4 text-white">Follow Us</h3>
+          <h3 className="text-lg font-semibold mb-4 text-neutral-900 dark:text-white">Follow Us</h3>
           <ul className="flex space-x-4 text-2xl mb-4">
             {[FaFacebookF, FaTwitter, FaLinkedinIn, FaInstagram].map((Icon, idx) => (
               <motion.li
@@ -118,26 +118,26 @@ const Footer = () => {
               </motion.li>
             ))}
           </ul>
-          <p className="text-gray-400 text-sm">Stay connected for updates & news.</p>
+          <p className="text-neutral-600 dark:text-gray-400 text-sm">Stay connected for updates & news.</p>
         </div>
       </div>
 
       {/* Mobile Layout */}
       <div className="md:hidden flex flex-col gap-6 relative z-10">
         {/** About Card **/}
-        <div className="bg-gray-800/70 backdrop-blur-md rounded-2xl p-6 shadow-lg border border-gray-700">
-          <h3 className="text-lg font-semibold mb-2 text-white">Gnanify</h3>
-          <p className="text-gray-300 mb-4">
+        <div className="backdrop-blur-md rounded-2xl p-6 shadow-lg border bg-neutral-100 dark:bg-gray-800 border-neutral-200 dark:border-gray-700">
+          <h3 className="text-lg font-semibold mb-2 text-neutral-900 dark:text-white">Gnanify</h3>
+          <p className="text-neutral-700 dark:text-gray-300 mb-4">
             Learn, Grow, and Connect with students & professionals worldwide.
           </p>
-          <p className="flex items-center gap-2 text-gray-400">
+          <p className="flex items-center gap-2 text-neutral-600 dark:text-gray-400">
             <MdLocationOn className="text-orange-500" /> 123 Knowledge Street, Hyderabad
           </p>
         </div>
 
         {/** Quick Links Card **/}
-        <div className="bg-gray-800/70 backdrop-blur-md rounded-2xl p-6 shadow-lg border border-gray-700">
-          <h3 className="text-lg font-semibold mb-4 text-white">Quick Links</h3>
+        <div className="backdrop-blur-md rounded-2xl p-6 shadow-lg border bg-white/70 border-neutral-200 dark:bg-gray-800/70 dark:border-gray-700">
+          <h3 className="text-lg font-semibold mb-4 text-neutral-900 dark:text-white">Quick Links</h3>
           <ul className="flex flex-col gap-2">
             {links.map((link) => (
               <li key={link.name}>
@@ -153,8 +153,8 @@ const Footer = () => {
         </div>
 
         {/** Support Card **/}
-        <div className="bg-gray-800/70 backdrop-blur-md rounded-2xl p-6 shadow-lg border border-gray-700">
-          <h3 className="text-lg font-semibold mb-4 text-white">Support</h3>
+        <div className="backdrop-blur-md rounded-2xl p-6 shadow-lg border bg-white/70 border-neutral-200 dark:bg-gray-800/70 dark:border-gray-700">
+          <h3 className="text-lg font-semibold mb-4 text-neutral-900 dark:text-white">Support</h3>
           <ul className="flex flex-col gap-2">
             <li className="flex items-center gap-2">
               <MdEmail className="text-orange-500" />
@@ -185,8 +185,8 @@ const Footer = () => {
         </div>
 
         {/** Social Card **/}
-        <div className="bg-gray-800/70 backdrop-blur-md rounded-2xl p-6 shadow-lg border border-gray-700 flex flex-col items-center">
-          <h3 className="text-lg font-semibold mb-4 text-white">Follow Us</h3>
+        <div className="backdrop-blur-md rounded-2xl p-6 shadow-lg border bg-white/70 border-neutral-200 dark:bg-gray-800/70 dark:border-gray-700 flex flex-col items-center">
+          <h3 className="text-lg font-semibold mb-4 text-neutral-900 dark:text-white">Follow Us</h3>
           <div className="flex space-x-4 text-2xl mb-4">
             {[FaFacebookF, FaTwitter, FaLinkedinIn, FaInstagram].map((Icon, idx) => (
               <motion.a
@@ -199,12 +199,12 @@ const Footer = () => {
               </motion.a>
             ))}
           </div>
-          <p className="text-gray-400 text-sm text-center">Stay connected for updates & news.</p>
+          <p className="text-neutral-600 dark:text-gray-400 text-sm text-center">Stay connected for updates & news.</p>
         </div>
       </div>
 
       {/* Bottom Note */}
-      <div className="mt-16 text-center text-gray-500 text-sm border-t border-gray-800 pt-6 relative z-10">
+      <div className="mt-16 text-center text-neutral-500 dark:text-gray-500 text-sm border-t border-neutral-200 dark:border-gray-800 pt-6 relative z-10">
         &copy; {new Date().getFullYear()} Gnanify. All rights reserved.
       </div>
     </footer>

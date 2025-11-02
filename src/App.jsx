@@ -5,6 +5,7 @@ import { AppRoutes } from "@/routes/AppRoutes";
 import { PublicRoutes } from "@/routes/PublicRoutes";
 import { AnalyticsListener } from "@/lib/AnalyticsListener";
 import { AuthProvider, useAuth } from "@/context/AuthContext";
+import { ThemeProvider } from "@/context/ThemeContext";
 
 const Main = () => {
   const { isAuthed } = useAuth();
@@ -14,14 +15,16 @@ const Main = () => {
 
 const App = () => {
   return (
-    <AuthProvider>
-      <Router>
-        <ErrorBoundary>
-          <AnalyticsListener />
-          <Main />
-        </ErrorBoundary>
-      </Router>
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <Router>
+          <ErrorBoundary>
+            <AnalyticsListener />
+            <Main />
+          </ErrorBoundary>
+        </Router>
+      </AuthProvider>
+    </ThemeProvider>
   );
 };
 

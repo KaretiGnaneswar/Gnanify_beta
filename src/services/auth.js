@@ -38,7 +38,11 @@ async function login(email, password) {
     }
     return response;
   } catch (error) {
-    const errorMessage = error.response?.data?.message || 'Login failed. Please check your credentials.';
+    const errorMessage =
+      error.response?.data?.message ||
+      error.response?.data?.error ||
+      error.message ||
+      'Login failed. Please check your credentials.';
     console.error('Login error:', errorMessage);
     throw new Error(errorMessage);
   }
@@ -57,7 +61,11 @@ async function signup(userData) {
     }
     return response;
   } catch (error) {
-    const errorMessage = error.response?.data?.message || 'Signup failed. Please try again.';
+    const errorMessage =
+      error.response?.data?.message ||
+      error.response?.data?.error ||
+      error.message ||
+      'Signup failed. Please try again.';
     console.error('Signup error:', errorMessage);
     throw new Error(errorMessage);
   }
@@ -76,7 +84,11 @@ async function getProfile() {
       // Token might be expired, clear it
       clearToken();
     }
-    const errorMessage = error.response?.data?.message || 'Failed to fetch profile';
+    const errorMessage =
+      error.response?.data?.message ||
+      error.response?.data?.error ||
+      error.message ||
+      'Failed to fetch profile';
     console.error('Profile fetch error:', errorMessage);
     throw new Error(errorMessage);
   }
@@ -91,7 +103,11 @@ async function updateProfile(profileData) {
   try {
     return await authApi.updateProfile(profileData);
   } catch (error) {
-    const errorMessage = error.response?.data?.message || 'Failed to update profile';
+    const errorMessage =
+      error.response?.data?.message ||
+      error.response?.data?.error ||
+      error.message ||
+      'Failed to update profile';
     console.error('Profile update error:', errorMessage);
     throw new Error(errorMessage);
   }
@@ -106,7 +122,11 @@ async function updateSocial(socialData) {
   try {
     return await authApi.updateSocial(socialData);
   } catch (error) {
-    const errorMessage = error.response?.data?.message || 'Failed to update social links';
+    const errorMessage =
+      error.response?.data?.message ||
+      error.response?.data?.error ||
+      error.message ||
+      'Failed to update social links';
     console.error('Social update error:', errorMessage);
     throw new Error(errorMessage);
   }
