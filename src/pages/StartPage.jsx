@@ -9,10 +9,12 @@ import Footer from "@/components/ui/layout/Footer";
 import AuthModal from "@/components/features/auth/AuthModel";
 import HowItWorks from "@/components/ui/layout/HowItWorks";
 import Contributor from "@/components/ui/layout/ContributorJourney";
+import ContactModal from "@/components/ui/common/ContactModal";
 // import Testimonils from "../components/StartingPage/Testimonils";
 import { Helmet } from "react-helmet-async";
 const StartPage = () => {
   const [showAuth, setShowAuth] = useState(false);
+  const [showContact, setShowContact] = useState(false);
   const navigate = useNavigate();
 
   const handleAuthClick = () => {
@@ -29,6 +31,15 @@ const StartPage = () => {
       navigate("/", { replace: true }); // redirect to home page with right navbar
     }
     setShowAuth(false);
+  };
+
+  const handleOpenContact = () => setShowContact(true);
+  const handleCloseContact = () => setShowContact(false);
+  const handleSubmitContact = (data) => {
+    // Here you can integrate API/email service later
+    // For now, just log. The modal closes in ContactModal after submit.
+    // eslint-disable-next-line no-console
+    console.log("Contact data:", data);
   };
 
 
@@ -62,13 +73,22 @@ const StartPage = () => {
       <OurTeam />
       <Contributor onLoginClick={handleAuthClick}/>
       {/* <Testimonils /> */}
-      <Footer />
+      <Footer onContactClick={handleOpenContact} />
 
       {/* Auth Modal */}
       {showAuth && (
         <AuthModal
           onAuthSuccess={handleAuthSuccess}
           onClose={handleAuthClose}
+        />
+      )}
+
+      {/* Contact Modal */}
+      {showContact && (
+        <ContactModal
+          isOpen={showContact}
+          onClose={handleCloseContact}
+          onSubmit={handleSubmitContact}
         />
       )}
     </div>

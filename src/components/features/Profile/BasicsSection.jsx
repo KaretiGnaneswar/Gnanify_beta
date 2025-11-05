@@ -18,7 +18,7 @@ export default function BasicsSection({ profile, setProfile }) {
   };
 
   return (
-    <div className="card rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300">
+    <div className="card rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 bg-white/90 dark:bg-neutral-900/70 border border-neutral-200 dark:border-white/10">
       <div className="flex items-center justify-between mb-5">
         <h2 className="text-xl font-semibold text-neutral-900 dark:text-white tracking-wide">About & Basic Info</h2>
         <button
@@ -39,7 +39,7 @@ export default function BasicsSection({ profile, setProfile }) {
             </div>
           </div>
           <div>
-            <div className="text-neutral-500 dark:text-gray-400 uppercase text-xs mb-1">About</div>
+            <div className="texxt-">About</div>
             <div className="text-neutral-700 dark:text-neutral-200 leading-relaxed whitespace-pre-wrap">
               {profile.about || 'No about section added yet.'}
             </div>

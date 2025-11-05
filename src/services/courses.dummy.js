@@ -259,15 +259,74 @@ export async function listCourses({ query = '', onlyFree = false } = {}) {
   const q = query.trim().toLowerCase();
   let arr = MOCK_COURSES;
   if (onlyFree) arr = arr.filter((c) => c.price === 0);
-  if (!q) return arr;
-  return arr.filter(
+  if (!q) return arr.map((c) => ({
+    id: c.id,
+    title: c.title,
+    created_by_name: c.instructor,
+    description: c.description,
+    category_name: deriveCategoryFromTags(c.tags),
+    difficulty: String(c.level || '').toLowerCase(),
+    is_free: Number(c.price || 0) === 0,
+    price: c.price || 0,
+    thumbnail: c.thumbnail,
+    rating: c.rating || 0,
+    students: c.students || 0,
+    average_rating: c.rating || 0,
+    enrollments_count: c.students || 0,
+    is_liked: false,
+    is_disliked: false,
+    likes_count: 0,
+    dislikes_count: 0,
+    is_enrolled: false,
+  }));
+  const filtered = arr.filter(
     (c) => c.title.toLowerCase().includes(q) || c.tags.join(' ').toLowerCase().includes(q)
   );
+  return filtered.map((c) => ({
+    id: c.id,
+    title: c.title,
+    created_by_name: c.instructor,
+    description: c.description,
+    category_name: deriveCategoryFromTags(c.tags),
+    difficulty: String(c.level || '').toLowerCase(),
+    is_free: Number(c.price || 0) === 0,
+    price: c.price || 0,
+    thumbnail: c.thumbnail,
+    rating: c.rating || 0,
+    students: c.students || 0,
+    average_rating: c.rating || 0,
+    enrollments_count: c.students || 0,
+    is_liked: false,
+    is_disliked: false,
+    likes_count: 0,
+    dislikes_count: 0,
+    is_enrolled: false,
+  }));
 }
 
 export async function getCourse(id) {
   await new Promise((r) => setTimeout(r, 150));
-  return MOCK_COURSES.find((c) => c.id === id) || null;
+  const c = MOCK_COURSES.find((x) => x.id === id);
+  if (!c) return null;
+  return {
+    id: c.id,
+    title: c.title,
+    created_by_name: c.instructor,
+    description: c.description,
+    category_name: deriveCategoryFromTags(c.tags),
+    difficulty: String(c.level || '').toLowerCase(),
+    is_free: Number(c.price || 0) === 0,
+    price: c.price || 0,
+    thumbnail: c.thumbnail,
+    rating: c.rating || 0,
+    students: c.students || 0,
+    average_rating: c.rating || 0,
+    enrollments_count: c.students || 0,
+    total_lessons: (c.lectures || []).length,
+    likes_count: 0,
+    dislikes_count: 0,
+    is_enrolled: false,
+  };
 }
 
 export async function getLectures(courseId) {
@@ -291,4 +350,11 @@ export async function purchaseCourse(id) {
   await new Promise((r) => setTimeout(r, 400));
   // This would return a payment URL or success in a real app
   return { success: true, courseId: id, orderId: `order_${Date.now()}` };
+}
+
+function deriveCategoryFromTags(tags = []) {
+  const t = tags.map((x) => String(x).toLowerCase());
+  if (t.some((x) => ['react','typescript','javascript','node.js'].includes(x))) return 'Programming';
+  if (t.some((x) => ['python','pandas','ml','data'].includes(x))) return 'Data Science';
+  return 'General';
 }

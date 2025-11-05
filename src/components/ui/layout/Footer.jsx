@@ -2,7 +2,7 @@ import { FaFacebookF, FaTwitter, FaLinkedinIn, FaInstagram } from "react-icons/f
 import { MdEmail, MdLocationOn } from "react-icons/md";
 import { motion } from "framer-motion";
 
-const Footer = () => {
+const Footer = ({ onContactClick }) => {
   // Map link names to section IDs
   const links = [
     { name: "Home", id: "hero" },
@@ -95,7 +95,7 @@ const Footer = () => {
             </li>
             <li>
               <button
-                onClick={() => handleScroll("contact")}
+                onClick={() => (onContactClick ? onContactClick() : handleScroll("contact"))}
                 className="hover:text-orange-500 transition-all duration-300"
               >
                 Contact Us
@@ -175,7 +175,7 @@ const Footer = () => {
             </li>
             <li>
               <button
-                onClick={() => handleScroll("contact")}
+                onClick={() => (onContactClick ? onContactClick() : handleScroll("contact"))}
                 className="hover:text-orange-500 transition-all duration-300"
               >
                 Contact Us
@@ -212,3 +212,4 @@ const Footer = () => {
 };
 
 export default Footer;
+

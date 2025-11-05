@@ -1,8 +1,19 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getBlogs } from "@/services/blogs";
-import { getMyConnections } from "@/services/connections";
+import { getUsers } from "@/services/connections";
 import { fetchCourses as listRealCourses } from "@/services/courses";
+import { UserCard } from "@/components";
+import PostComposer from "@/components/features/posts/PostComposer";
+import Hero from "@/components/features/home/Hero";
+import Stats from "@/components/features/home/Stats";
+import PostsFeed from "@/components/features/home/PostsFeed";
+import RecentBlogs from "@/components/features/home/RecentBlogs";
+import TopCourses from "@/components/features/home/TopCourses";
+import TrendingNews from "@/components/features/home/TrendingNews";
+import { listPosts, createPost as createServicePost, reactApi } from "@/services/posts";
+import { listTrendingNews } from "@/services/news";
+import { useAuth } from "@/context/AuthContext";
 
 const HomePage = () => {
   const navigate = useNavigate();
@@ -11,6 +22,47 @@ const HomePage = () => {
   const [courses, setCourses] = useState([]);
   const [connections, setConnections] = useState([]);
   const [error, setError] = useState("");
+  const { user: currentUser } = useAuth();
+  const [enrolledCoursesCount, setEnrolledCoursesCount] = useState(0);
+  const [myBlogsCount, setMyBlogsCount] = useState(0);
+  const [posts, setPosts] = useState([]);
+  const [news, setNews] = useState([]);
+
+
+  useEffect(() => {
+    setPosts(listPosts());
+    setNews(listTrendingNews());
+  }, []);
+
+  function handleCreatePost({ text, image }) {
+    const author = {
+      id: currentUser?.id,
+      name: currentUser?.name || currentUser?.email || "You",
+      avatarUrl: currentUser?.avatarUrl || "/default-avatar.png",
+      title: currentUser?.title || "",
+      company: currentUser?.company || "",
+    };
+    createServicePost({ author, text, image });
+    setPosts(listPosts());
+  }
+
+  // Post actions via service
+  function onLike(id) {
+    reactApi.like(id);
+    setPosts(listPosts());
+  }
+  function onDislike(id) {
+    reactApi.dislike(id);
+    setPosts(listPosts());
+  }
+  function onRepost(id) {
+    reactApi.repost(id);
+    setPosts(listPosts());
+  }
+  function onShare(id) {
+    reactApi.share(id);
+    setPosts(listPosts());
+  }
 
   useEffect(() => {
     let mounted = true;
@@ -18,15 +70,45 @@ const HomePage = () => {
       try {
         setLoading(true);
         setError("");
-        const [b, c, conns] = await Promise.all([
+        const [b, c, allUsers] = await Promise.all([
           getBlogs().catch(() => []),
           listRealCourses({ query: "", onlyFree: false }).catch(() => []),
-          getMyConnections().catch(() => []),
+          getUsers().catch(() => []),
         ]);
         if (!mounted) return;
-        setBlogs(Array.isArray(b) ? b.slice(0, 5) : []);
-        setCourses(Array.isArray(c) ? c.slice(0, 6) : []);
-        setConnections(Array.isArray(conns) ? conns.slice(0, 6) : []);
+        // Blogs: keep recent list for UI, compute count authored by current user
+        const allBlogs = Array.isArray(b) ? b : [];
+        const blogAuthorMatches = (blog) => {
+          const bid = blog?.author?.id ?? blog?.author_id ?? blog?.created_by_id ?? blog?.user_id ?? blog?.user?.id ?? blog?.created_by?.id;
+          const bemail = blog?.author?.email ?? blog?.user?.email ?? blog?.created_by?.email;
+          const bname = blog?.author?.name ?? blog?.user?.name ?? blog?.created_by?.name;
+          const uidMatch = currentUser?.id && bid && String(currentUser.id) === String(bid);
+          const emailMatch = currentUser?.email && bemail && String(currentUser.email).toLowerCase() === String(bemail).toLowerCase();
+          const nameMatch = currentUser?.name && bname && String(currentUser.name).toLowerCase() === String(bname).toLowerCase();
+          return Boolean(uidMatch || emailMatch || nameMatch);
+        };
+        setMyBlogsCount(allBlogs.filter(blogAuthorMatches).length);
+        setBlogs(allBlogs.slice(0, 5));
+        // Build Top Courses: not enrolled yet, sorted by most enrollments
+        const normalizeEnrollCount = (x) =>
+          Number(
+            x?.enrollments_count ?? x?.students ?? x?.total_enrollments ?? x?.enrollments ?? x?.learners_count ?? 0
+          );
+        const isEnrolled = (x) => Boolean(x?.is_enrolled ?? x?.enrolled ?? false);
+        const coursesAll = Array.isArray(c) ? c : [];
+        const topNotEnrolled = coursesAll
+          .filter((course) => !isEnrolled(course))
+          .sort((a, b) => normalizeEnrollCount(b) - normalizeEnrollCount(a))
+          .slice(0, 6);
+        setCourses(topNotEnrolled);
+        setEnrolledCoursesCount(coursesAll.filter(isEnrolled).length);
+        const suggestions = Array.isArray(allUsers)
+          ? allUsers.filter((u) => {
+              const isSelf = currentUser?.id && u?.id && String(currentUser.id) === String(u.id);
+              return !isSelf && !u?.connected;
+            })
+          : [];
+        setConnections(suggestions.slice(0, 6));
       } catch {
         if (mounted) setError("Failed to load home data");
       } finally {
@@ -36,67 +118,26 @@ const HomePage = () => {
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [currentUser?.id]);
 
   const stats = useMemo(
     () => ({
-      blogs: blogs.length,
-      courses: courses.length,
-      connections: connections.length,
+      myBlogs: myBlogsCount,
+      enrolledCourses: enrolledCoursesCount,
     }),
-    [blogs.length, courses.length, connections.length]
+    [myBlogsCount, enrolledCoursesCount]
   );
 
   return (
     <div className="max-w-6xl mx-auto p-4 space-y-6">
       {/* Hero */}
-      <div className="bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-xl shadow-sm">
-        <div className="p-5 md:flex md:items-center md:justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-              Welcome back 👋
-            </h1>
-            <p className="text-gray-500 dark:text-gray-400">
-              Here’s a quick overview of what’s new.
-            </p>
-          </div>
-          <div className="flex gap-2 mt-3 md:mt-0">
-            <button
-              className="px-4 py-2 rounded-md bg-orange-500 text-white font-medium hover:bg-orange-600 transition"
-              onClick={() => navigate("/blogs")}
-            >
-              Write a Blog
-            </button>
-            <button
-              className="px-4 py-2 rounded-md bg-gray-200 dark:bg-gray-800 text-gray-900 dark:text-gray-200 font-medium hover:bg-gray-300 dark:hover:bg-gray-700 transition"
-              onClick={() => navigate("/courses")}
-            >
-              Browse Courses
-            </button>
-          </div>
-        </div>
-      </div>
+      <Hero onBlogsClick={() => navigate("/blogs")} onCoursesClick={() => navigate("/courses")} />
 
       {/* Stats */}
-      <div className="grid gap-4 sm:grid-cols-3">
-        {[
-          { label: "Blogs", value: stats.blogs },
-          { label: "Courses", value: stats.courses },
-          { label: "Connections", value: stats.connections },
-        ].map((s) => (
-          <div
-            key={s.label}
-            className="bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-xl p-4 shadow-sm hover:shadow-md transition-all"
-          >
-            <div className="text-sm text-gray-600 dark:text-gray-400">
-              {s.label}
-            </div>
-            <div className="text-3xl font-semibold text-gray-900 dark:text-orange-300">
-              {s.value}
-            </div>
-          </div>
-        ))}
-      </div>
+      <Stats items={[
+        { label: "My Blogs", value: stats.myBlogs },
+        { label: "Enrolled Courses", value: stats.enrolledCourses },
+      ]} />
 
       {error && (
         <div className="bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-700 text-red-700 dark:text-red-300 p-4 rounded-md">
@@ -108,146 +149,33 @@ const HomePage = () => {
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Left: Blogs + Connections */}
         <div className="space-y-6 lg:col-span-2">
-          {/* Recent Blogs */}
-          <div className="bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-xl shadow-sm">
-            <div className="p-5">
-              <div className="flex items-center justify-between mb-3">
-                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                  Recent Blogs
-                </h2>
-                <button
-                  className="text-sm text-orange-500 hover:text-orange-600"
-                  onClick={() => navigate("/blogs")}
-                >
-                  View All
-                </button>
-              </div>
-              {loading ? (
-                <div className="space-y-3">
-                  {Array.from({ length: 4 }).map((_, i) => (
-                    <div
-                      key={i}
-                      className="h-14 rounded-md bg-gray-100 dark:bg-gray-800 animate-pulse"
-                    />
-                  ))}
-                </div>
-              ) : blogs.length === 0 ? (
-                <div className="text-gray-500 dark:text-gray-400 text-sm">
-                  No blogs yet.
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {blogs.map((b) => (
-                    <button
-                      key={b.id || b._id}
-                      onClick={() => navigate(`/blogs/${b.id || b._id}`)}
-                      className="w-full text-left rounded-md p-3 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition"
-                    >
-                      <div className="text-gray-900 dark:text-white font-medium line-clamp-1">
-                        {b.title}
-                      </div>
-                      <div className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2">
-                        {b.content}
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
+          {/* Create Post (LinkedIn style) */}
+          <PostComposer currentUser={currentUser} onCreate={handleCreatePost} />
 
-          {/* Suggested Connections */}
-          <div className="bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-xl shadow-sm">
-            <div className="p-5">
-              <div className="flex items-center justify-between mb-3">
-                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                  Suggested Connections
-                </h2>
-                <button
-                  className="text-sm text-orange-500 hover:text-orange-600"
-                  onClick={() => navigate("/connections")}
-                >
-                  See More
-                </button>
-              </div>
-              {loading ? (
-                <div className="grid sm:grid-cols-2 gap-3">
-                  {Array.from({ length: 4 }).map((_, i) => (
-                    <div
-                      key={i}
-                      className="h-16 rounded-md bg-gray-100 dark:bg-gray-800 animate-pulse"
-                    />
-                  ))}
-                </div>
-              ) : connections.length === 0 ? (
-                <div className="text-gray-500 dark:text-gray-400 text-sm">
-                  No suggestions.
-                </div>
-              ) : (
-                <div className="grid sm:grid-cols-2 gap-3">
-                  {connections.map((u) => (
-                    <button
-                      key={u.id}
-                      onClick={() => navigate(`/connections/${u.id}`)}
-                      className="flex items-center gap-3 p-3 rounded-md bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition"
-                    >
-                      <img
-                        src={u.avatarUrl || u.avatar_url}
-                        alt={u.name}
-                        className="w-9 h-9 rounded-full object-cover"
-                      />
-                      <div className="min-w-0">
-                        <div className="text-sm font-medium text-gray-900 dark:text-white truncate">
-                          {u.name}
-                        </div>
-                        <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                          {u.title}
-                        </div>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
+          {/* Posts Feed */}
+          <PostsFeed posts={posts} onLike={onLike} onDislike={onDislike} onRepost={onRepost} onShare={onShare} />
+
+          {/* Recent Blogs */}
+          <RecentBlogs
+            loading={loading}
+            blogs={blogs}
+            onOpen={(id) => navigate(`/blogs/${id}`)}
+          />
+
+          {/* (Activity Time removed as requested) */}
         </div>
 
-        {/* Right: Top Courses */}
-        <aside className="lg:col-span-1">
-          <div className="bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-xl shadow-sm sticky top-20">
-            <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700 text-sm font-semibold text-gray-900 dark:text-white">
-              Top Courses
-            </div>
-            <div className="p-3 space-y-3">
-              {loading ? (
-                Array.from({ length: 5 }).map((_, i) => (
-                  <div
-                    key={i}
-                    className="h-14 rounded-md bg-gray-100 dark:bg-gray-800 animate-pulse"
-                  />
-                ))
-              ) : courses.length === 0 ? (
-                <div className="text-gray-500 dark:text-gray-400 text-sm">
-                  No courses yet.
-                </div>
-              ) : (
-                courses.map((c) => (
-                  <button
-                    key={c.id}
-                    onClick={() => navigate(`/courses/${c.id}`)}
-                    className="w-full text-left rounded-md p-3 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition"
-                  >
-                    <div className="text-gray-900 dark:text-white font-medium line-clamp-1">
-                      {c.title}
-                    </div>
-                    <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 line-clamp-1">
-                      {c.instructor} • {c.level || "—"}
-                    </div>
-                  </button>
-                ))
-              )}
-            </div>
-          </div>
+        {/* Right: Trending + Top Courses */}
+        <aside className="lg:col-span-1 space-y-4 sticky top-20 self-start">
+          <TrendingNews
+            news={news}
+            onOpen={(url) => window.open(url, "_blank", "noopener,noreferrer")}
+          />
+          <TopCourses
+            loading={loading}
+            courses={courses}
+            onOpen={(id) => navigate(`/courses/${id}`)}
+          />
         </aside>
       </div>
     </div>

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import {
   fetchCourses,
@@ -7,6 +8,7 @@ import {
   dislikeCourse,
   enrollInCourse
 } from '@/services/courses';
+import CourseCard from '@/components/features/courses/CourseCard';
 
 export default function CoursesPage() {
   const { user } = useAuth();
@@ -78,11 +80,19 @@ export default function CoursesPage() {
   return (
     <div className="max-w-7xl mx-auto p-6">
       {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-1">Courses</h1>
-        <p className="text-gray-600 dark:text-gray-400 text-sm">
-          Explore courses and improve your skills. Filter, like, and enroll easily.
-        </p>
+      <div className="mb-6 flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-1">Courses</h1>
+          <p className="text-gray-600 dark:text-gray-400 text-sm">
+            Explore courses and improve your skills. Filter, like, and enroll easily.
+          </p>
+        </div>
+        <Link
+          to="/course-connections"
+          className="inline-flex items-center px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+        >
+          Course Connections
+        </Link>
       </div>
 
       {/* Search Bar + Filters */}
@@ -102,7 +112,7 @@ export default function CoursesPage() {
             className="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white"
           >
             <option value="">All Categories</option>
-            {categories.map((cat) => (
+            {Array.isArray(categories) && categories.map((cat) => (
               <option key={cat.id} value={cat.id}>{cat.name}</option>
             ))}
           </select>
@@ -147,57 +157,7 @@ export default function CoursesPage() {
       ) : (
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {courses.map((course) => (
-            <div
-              key={course.id}
-              className="p-5 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl hover:shadow-lg transition-all"
-            >
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">
-                {course.title}
-              </h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
-                By {course.created_by_name}
-              </p>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mb-3 line-clamp-2">
-                {course.description}
-              </p>
-
-              <div className="flex justify-between items-center text-sm text-gray-600 dark:text-gray-400 mb-4">
-                <span>{course.category_name || 'General'}</span>
-                <span className="capitalize">{course.difficulty || 'Beginner'}</span>
-              </div>
-
-              <div className="flex justify-between items-center">
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => handleLike(course.id)}
-                    className={`px-3 py-1 rounded-md text-sm ${
-                      course.is_liked ? 'bg-blue-600 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
-                    }`}
-                  >
-                    👍 {course.likes_count || 0}
-                  </button>
-                  <button
-                    onClick={() => handleDislike(course.id)}
-                    className={`px-3 py-1 rounded-md text-sm ${
-                      course.is_disliked ? 'bg-red-600 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
-                    }`}
-                  >
-                    👎 {course.dislikes_count || 0}
-                  </button>
-                </div>
-
-                {course.is_enrolled ? (
-                  <span className="text-green-500 text-sm font-medium">✓ Enrolled</span>
-                ) : (
-                  <button
-                    onClick={() => handleEnroll(course.id)}
-                    className="px-4 py-1.5 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors"
-                  >
-                    {course.is_free ? 'Enroll Free' : `Enroll $${course.price || 0}`}
-                  </button>
-                )}
-              </div>
-            </div>
+            <CourseCard key={course.id} course={course} />
           ))}
         </div>
       )}

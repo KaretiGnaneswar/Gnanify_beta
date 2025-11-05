@@ -15,18 +15,18 @@ export default function StatsSection({ profile }) {
         <div
           key={s.label}
           className="
-            bg-white dark:bg-gray-900
-            border border-gray-300 dark:border-gray-700
+            bg-white/90 dark:bg-neutral-900/70
+            border border-neutral-200 dark:border-white/10
             rounded-xl p-5
             shadow-sm hover:shadow-md
-            hover:border-orange-400/70
+            hover:border-orange-400/60
             transition-all duration-300
           "
         >
-          <div className="text-sm font-medium text-gray-600 dark:text-gray-400 uppercase mb-1">
+          <div className="text-sm font-medium text-neutral-600 dark:text-gray-400 uppercase mb-1">
             {s.label}
           </div>
-          <div className="text-lg font-semibold text-gray-900 dark:text-white">
+          <div className="text-lg font-semibold text-neutral-900 dark:text-white">
             {s.value || "—"}
           </div>
         </div>

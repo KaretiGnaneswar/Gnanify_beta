@@ -16,9 +16,9 @@ export default function SocialLinks({ social = {} }) {
   return (
     <div className="card">
       <div className="card-body">
-        <h2 className="text-lg font-semibold text-white mb-3">Social</h2>
+        <h2 className="text-lg font-semibold text-neutral-900 dark:text-white mb-3">Social</h2>
         {entries.length === 0 ? (
-          <div className="text-neutral-400 text-sm">No social links provided.</div>
+          <div className="text-neutral-600 dark:text-neutral-400 text-sm">No social links provided.</div>
         ) : (
           <div className="flex flex-wrap gap-2">
             {entries.map(([key, href]) => (
@@ -27,7 +27,7 @@ export default function SocialLinks({ social = {} }) {
                 href={href}
                 target="_blank"
                 rel="noreferrer"
-                className="px-3 py-1.5 rounded-md bg-neutral-900 border border-white/10 text-sm text-white hover:bg-neutral-800"
+                className="px-3 py-1.5 rounded-md text-sm bg-neutral-100 text-neutral-900 border border-neutral-200 hover:bg-neutral-200 dark:bg-neutral-900 dark:text-white dark:border-white/10 dark:hover:bg-neutral-800"
                 title={labels[key] || key}
               >
                 <span className="mr-1 align-middle">{icons[key] || '🔗'}</span>

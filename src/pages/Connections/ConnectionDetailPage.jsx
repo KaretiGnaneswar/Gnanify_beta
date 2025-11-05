@@ -47,18 +47,23 @@ export default function ConnectionDetailPage() {
     <div className="p-0 bg-white text-neutral-900 dark:bg-neutral-950 dark:text-white">
       <div className="h-36 bg-gradient-to-r from-neutral-200 via-neutral-300 to-neutral-200 dark:from-neutral-800 dark:via-neutral-700 dark:to-neutral-800" />
       <div className="max-w-6xl mx-auto px-4 -mt-10">
-        <ConnectionHeader user={user} connected={connected} setConnected={setConnected} />
-      </div>
+        <div className="grid gap-6 lg:grid-cols-4">
+          {/* Left column ~25% */}
+          <aside className="space-y-4 lg:col-span-1">
+            <ConnectionHeader user={user} connected={connected} setConnected={setConnected} />
+            
+          </aside>
 
-      <div className="max-w-6xl mx-auto px-4 mt-6 grid gap-6 lg:grid-cols-3">
-        <div className="space-y-6 lg:col-span-2">
-          <SocialLinks social={user.social} />
-          <AboutSection about={user.about} />
-          <SkillsSection skills={user.skills} />
+          {/* Right column ~75% */}
+          <div className="space-y-6 lg:col-span-3 mt-6 lg:mt-0">
+            <SocialLinks social={user.social} />
+            <AboutSection about={user.about} />
+            <SkillsSection skills={user.skills} />
+            <PeopleAlsoViewed suggestions={suggestions} navigate={navigate} />
+          </div>
+          
         </div>
-        <aside className="space-y-3">
-          <PeopleAlsoViewed suggestions={suggestions} navigate={navigate} />
-        </aside>
+        
       </div>
     </div>
   );

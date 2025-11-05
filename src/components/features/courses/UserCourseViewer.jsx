@@ -4,6 +4,13 @@ import VideoPlayer from './VideoPlayer';
 import NotesModal from './NotesModal';
 import ReviewModal from './ReviewModal';
 import ProgressTracker from './ProgressTracker';
+import {
+  fetchCourse,
+  fetchLessons,
+  enrollInCourse,
+  likeCourse,
+  dislikeCourse,
+} from '@/services/courses';
 
 const UserCourseViewer = ({ courseId }) => {
   const { user } = useAuth();
@@ -26,42 +33,18 @@ const UserCourseViewer = ({ courseId }) => {
     setLoading(true);
     try {
       // Fetch course details
-      const courseResponse = await fetch(`/api/courses/${courseId}/`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        },
-      });
-      const courseData = await courseResponse.json();
+      const courseData = await fetchCourse(courseId);
       setCourse(courseData);
 
       // Fetch lessons
-      const lessonsResponse = await fetch(`/api/courses/${courseId}/lessons/`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        },
-      });
-      const lessonsData = await lessonsResponse.json();
+      const lessonsData = await fetchLessons(courseId);
       setLessons(lessonsData);
 
-      // Fetch enrollment status
-      if (courseData.is_enrolled) {
-        const enrollmentResponse = await fetch(`/api/courses/${courseId}/enroll/`, {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`,
-          },
-        });
-        const enrollmentData = await enrollmentResponse.json();
-        setEnrollment(enrollmentData);
-      }
+      // Enrollment data is not separately retrievable; rely on courseData.is_enrolled
+      setEnrollment(courseData.is_enrolled ? { course: courseId } : null);
 
-      // Fetch reviews
-      const reviewsResponse = await fetch(`/api/courses/${courseId}/reviews/`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        },
-      });
-      const reviewsData = await reviewsResponse.json();
-      setReviews(reviewsData);
+      // Reviews API not implemented in backend yet; keep empty to avoid errors
+      setReviews([]);
 
       // Set first lesson as current
       if (lessonsData.length > 0) {
@@ -79,22 +62,10 @@ const UserCourseViewer = ({ courseId }) => {
 
   const handleEnroll = async () => {
     try {
-      const response = await fetch(`/api/courses/${courseId}/enroll/`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        },
-      });
-      
-      if (response.ok) {
-        const enrollmentData = await response.json();
-        setEnrollment(enrollmentData);
-        setCourse(prev => ({ ...prev, is_enrolled: true }));
-        alert('Successfully enrolled in the course!');
-      } else {
-        const error = await response.json();
-        alert(`Enrollment failed: ${error.error}`);
-      }
+      const enrollmentData = await enrollInCourse(courseId);
+      setEnrollment(enrollmentData);
+      setCourse(prev => ({ ...prev, is_enrolled: true }));
+      alert('Successfully enrolled in the course!');
     } catch (error) {
       alert('Failed to enroll in the course');
     }
@@ -102,16 +73,8 @@ const UserCourseViewer = ({ courseId }) => {
 
   const handleLike = async () => {
     try {
-      const response = await fetch(`/api/courses/${courseId}/like/`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        },
-      });
-      
-      if (response.ok) {
-        fetchCourseData(); // Refresh course data
-      }
+      await likeCourse(courseId);
+      fetchCourseData(); // Refresh course data
     } catch (error) {
       console.error('Error liking course:', error);
     }
@@ -119,62 +82,24 @@ const UserCourseViewer = ({ courseId }) => {
 
   const handleDislike = async () => {
     try {
-      const response = await fetch(`/api/courses/${courseId}/dislike/`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        },
-      });
-      
-      if (response.ok) {
-        fetchCourseData(); // Refresh course data
-      }
+      await dislikeCourse(courseId);
+      fetchCourseData(); // Refresh course data
     } catch (error) {
       console.error('Error disliking course:', error);
     }
   };
 
+  // Wishlist API not implemented yet
   const handleAddToWishlist = async () => {
-    try {
-      const response = await fetch(`/api/wishlist/${courseId}/`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        },
-      });
-      
-      if (response.ok) {
-        alert('Added to wishlist!');
-      }
-    } catch (error) {
-      console.error('Error adding to wishlist:', error);
-    }
+    alert('Wishlist is coming soon.');
   };
 
+  // Progress tracking API not implemented yet
   const handleUpdateProgress = async (subtopicId, isCompleted, watchTime) => {
-    try {
-      const response = await fetch(`/api/subtopics/${subtopicId}/progress/`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        },
-        body: JSON.stringify({
-          is_completed: isCompleted,
-          watch_time: watchTime
-        }),
-      });
-      
-      if (response.ok) {
-        const progressData = await response.json();
-        setProgress(prev => ({
-          ...prev,
-          [subtopicId]: progressData
-        }));
-      }
-    } catch (error) {
-      console.error('Error updating progress:', error);
-    }
+    setProgress(prev => ({
+      ...prev,
+      [subtopicId]: { is_completed: isCompleted, watch_time: watchTime },
+    }));
   };
 
   const handleSaveNote = async (subtopicId, noteData) => {

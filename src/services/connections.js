@@ -10,7 +10,6 @@ function emitConnectionsUpdated() {
   }
 }
 
-// Mock implementation since the backend doesn't have a connections app yet
 export const connectionsApi = {
   list: async (query = '') => {
     const q = query?.trim() ? `?search=${encodeURIComponent(query.trim())}` : '';
@@ -19,6 +18,11 @@ export const connectionsApi = {
   search: async (query = '') => {
     const q = query?.trim() ? `?search=${encodeURIComponent(query.trim())}` : '';
     return client.get(`/connections/users/${q}`);
+  },
+  cancelOutgoing: async (toUserId) => {
+    const res = await client.post(`/connections/requests/cancel/`, { to_user: toUserId });
+    emitConnectionsUpdated();
+    return res;
   },
   sendRequest: async (toUserId) => {
     const res = await client.post(`/connections/requests/send/`, { to_user: toUserId });
@@ -59,7 +63,11 @@ export const connectionsApi = {
   },
   canMessage: async (userId) => client.get(`/connections/can-message/${userId}/`),
   getStatus: async (userId) => client.get(`/connections/status/${userId}/`),
-  removeConnection: async () => ({}),
+  removeConnection: async (userId) => {
+    const res = await client.del(`/connections/connection/${userId}/`);
+    emitConnectionsUpdated();
+    return res;
+  },
 };
 
 // Helper functions for connections
@@ -95,6 +103,33 @@ export async function sendConnectionRequest(userId) {
     return await connectionsApi.sendRequest(userId);
   } catch (error) {
     console.error('Error sending connection request:', error);
+    throw error;
+  }
+}
+
+export async function cancelOutgoingRequest(userId) {
+  try {
+    // Try the explicit cancel endpoint
+    try {
+      const res = await connectionsApi.cancelOutgoing(userId);
+      return res;
+    } catch (err) {
+      // Fallback: fetch pending request id and attempt DELETE /requests/{id}/
+      if (err?.status === 404 || String(err)?.includes('404')) {
+        const pending = await connectionsApi.getPendingFromUser(userId); // { id }
+        if (pending?.id) {
+          const res = await client.del(`/connections/requests/${pending.id}/`);
+          emitConnectionsUpdated();
+          return res;
+        }
+        // If still not found, optimistically update UI
+        emitConnectionsUpdated();
+        return { success: false, simulated: true };
+      }
+      throw err;
+    }
+  } catch (error) {
+    console.error('Error cancelling connection request:', error);
     throw error;
   }
 }

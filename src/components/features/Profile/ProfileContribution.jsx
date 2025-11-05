@@ -14,17 +14,17 @@ const generateDummyContributions = () => {
 const getColor = (value) => {
   switch (value) {
     case 0:
-      return "bg-gray-800"; // no contribution
+      return "bg-neutral-200 dark:bg-neutral-800";
     case 1:
-      return "bg-green-200";
+      return "bg-green-200 dark:bg-green-900";
     case 2:
-      return "bg-green-300";
+      return "bg-green-300 dark:bg-green-800";
     case 3:
-      return "bg-green-400";
+      return "bg-green-400 dark:bg-green-700";
     case 4:
-      return "bg-green-500";
+      return "bg-green-500 dark:bg-green-600";
     default:
-      return "bg-gray-800";
+      return "bg-neutral-200 dark:bg-neutral-800";
   }
 };
 
@@ -52,7 +52,7 @@ export default function ProfileContribution() {
 
   return (
     <div className="card p-4">
-      <h2 className="text-lg font-semibold text-white mb-3">Contribution Graph</h2>
+      <h2 className="text-lg font-semibold text-neutral-900 dark:text-white mb-3">Contribution Graph</h2>
       <div className="flex items-start gap-2 overflow-x-auto">
         {weeks.map((days, weekIdx) => (
           <div key={weekIdx} className="flex flex-col gap-0.5">
@@ -68,7 +68,7 @@ export default function ProfileContribution() {
       </div>
 
       {/* Month labels */}
-      <div className="flex justify-between mt-2 text-gray-400 text-xs px-1">
+      <div className="flex justify-between mt-2 text-neutral-500 dark:text-gray-400 text-xs px-1">
         {monthLabels.map((month) => (
           <span key={month}>{month}</span>
         ))}

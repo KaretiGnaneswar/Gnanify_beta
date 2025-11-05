@@ -1,7 +1,11 @@
 import { config } from '@/lib/config';
+import * as Dummy from './courses.dummy';
 
 // The config.apiBaseUrl already includes /api, so we don't need to add it again
 const API_BASE_URL = `${config.apiBaseUrl}/courses`;
+
+const USE_DUMMY = false;
+const ENROLLED_IDS = new Set();
 
 // Helper function to get auth headers
 const getAuthHeaders = () => {
@@ -14,6 +18,13 @@ const getAuthHeaders = () => {
 
 // Categories API
 export const fetchCategories = async () => {
+  if (USE_DUMMY) {
+    return [
+      { id: 'cat_general', name: 'General' },
+      { id: 'cat_programming', name: 'Programming' },
+      { id: 'cat_data', name: 'Data Science' }
+    ];
+  }
   try {
     // Updated to use the correct path: /api/courses/categories/
     const response = await fetch(`${config.apiBaseUrl}/courses/categories/`, {
@@ -37,17 +48,36 @@ export const fetchCategories = async () => {
       throw error;
     }
     
-    // If response is ok, parse and return the JSON
-    return response.json();
+    // If response is ok, parse and normalize to an array
+    const data = await response.json();
+    return Array.isArray(data) ? data : (data.data || []);
   } catch (error) {
     console.error('Error in fetchCategories:', error);
-    throw error;
+    // Return empty array instead of throwing to prevent UI crashes
+    return [];
   }
 };
 
 
 // Courses API
 export const fetchCourses = async (params = {}) => {
+  if (USE_DUMMY) {
+    const query = params.search || params.query || '';
+    const onlyFree = params.onlyFree || false;
+    let list = await Dummy.listCourses({ query, onlyFree });
+    if (params.category) {
+      const cat = String(params.category).toLowerCase();
+      list = list.filter((c) => String(c.category_name || '').toLowerCase().includes(cat));
+    }
+    if (params.difficulty) {
+      const d = String(params.difficulty).toLowerCase();
+      list = list.filter((c) => String(c.difficulty || '').toLowerCase().includes(d));
+    }
+    return list.map((c) => ({
+      ...c,
+      is_enrolled: ENROLLED_IDS.has(c.id),
+    }));
+  }
   const queryParams = new URLSearchParams();
   
   // Map frontend parameters to backend parameters
@@ -94,6 +124,9 @@ export const fetchCourses = async (params = {}) => {
 };
 
 export const fetchCourse = async (courseId) => {
+  if (USE_DUMMY) {
+    return await Dummy.getCourse(courseId);
+  }
   try {
     // Backend expects /api/courses/courses/<id>/
     const response = await fetch(`${API_BASE_URL}/courses/${courseId}/`, {
@@ -170,6 +203,21 @@ export const updateCourse = async (courseId, courseData) => {
   return response.json();
 };
 
+// Assignments API (dummy support)
+export const fetchAssignments = async (courseId) => {
+  if (USE_DUMMY) {
+    const list = await Dummy.getAssignments(courseId);
+    return (list || []).map((a) => ({
+      id: a.id,
+      title: a.title,
+      afterLectures: a.afterLectures || [],
+      description: a.description,
+      mcqs: a.mcqs || [],
+    }));
+  }
+  // Backend path unknown yet; return [] to avoid crashes
+  return [];
+};
 export const deleteCourse = async (courseId) => {
   const response = await fetch(`${API_BASE_URL}/courses/${courseId}/`, {
     method: 'DELETE',
@@ -186,6 +234,15 @@ export const deleteCourse = async (courseId) => {
 
 // Lessons API
 export const fetchLessons = async (courseId) => {
+  if (USE_DUMMY) {
+    const lectures = await Dummy.getLectures(courseId);
+    // Map dummy lectures to lessons expected by UI
+    return (lectures || []).map((lec, idx) => ({
+      id: lec.id,
+      title: lec.title,
+      description: `Lesson ${idx + 1}: ${lec.title}`,
+    }));
+  }
   const response = await fetch(`${API_BASE_URL}/courses/${courseId}/lessons/`, {
     headers: getAuthHeaders(),
   });
@@ -214,6 +271,26 @@ export const createLesson = async (courseId, lessonData) => {
 
 // SubTopics API
 export const fetchSubtopics = async (lessonId) => {
+  if (USE_DUMMY) {
+    // In dummy data, lessonId corresponds to lecture id; build a single subtopic from it
+    // We need the courseId to find the lecture; since it's not provided, scan across dummy courses
+    const possibleCourses = await Dummy.listCourses();
+    for (const c of possibleCourses) {
+      const lectures = await Dummy.getLectures(c.id);
+      const match = (lectures || []).find((l) => l.id === lessonId);
+      if (match) {
+        return [{
+          id: `${match.id}_sub1`,
+          title: match.title,
+          description: 'Watch the lecture and review the notes.',
+          video_url: match.videoUrl,
+          is_preview: !!match.freePreview,
+          notes_url: match.notesPdfUrl,
+        }];
+      }
+    }
+    return [];
+  }
   const response = await fetch(`${API_BASE_URL}/lessons/${lessonId}/subtopics/`, {
     headers: getAuthHeaders(),
   });
@@ -242,6 +319,11 @@ export const createSubTopic = async (lessonId, subtopicData) => {
 
 // Enrollment API
 export const enrollInCourse = async (courseId) => {
+  if (USE_DUMMY) {
+    const res = await Dummy.enrollFree(courseId);
+    ENROLLED_IDS.add(courseId);
+    return res;
+  }
   const response = await fetch(`${API_BASE_URL}/courses/${courseId}/enroll/`, {
     method: 'POST',
     headers: getAuthHeaders(),
@@ -271,6 +353,9 @@ export const unenrollFromCourse = async (courseId) => {
 
 // Like/Dislike API
 export const likeCourse = async (courseId) => {
+  if (USE_DUMMY) {
+    return { success: true, courseId };
+  }
   const response = await fetch(`${API_BASE_URL}/courses/${courseId}/like/`, {
     method: 'POST',
     headers: getAuthHeaders(),
@@ -285,6 +370,9 @@ export const likeCourse = async (courseId) => {
 };
 
 export const dislikeCourse = async (courseId) => {
+  if (USE_DUMMY) {
+    return { success: true, courseId };
+  }
   const response = await fetch(`${API_BASE_URL}/courses/${courseId}/dislike/`, {
     method: 'POST',
     headers: getAuthHeaders(),
