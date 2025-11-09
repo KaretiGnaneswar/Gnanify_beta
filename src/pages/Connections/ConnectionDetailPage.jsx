@@ -6,6 +6,8 @@ import SocialLinks from '@/components/features/connections/ConnectionDetailPage/
 import AboutSection from '@/components/features/connections/ConnectionDetailPage/AboutSection';
 import SkillsSection from '@/components/features/connections/ConnectionDetailPage/SkillsSection';
 import PeopleAlsoViewed from '@/components/features/connections/ConnectionDetailPage/PeopleAlsoViewed';
+import PostsFeed from '@/components/features/home/PostsFeed';
+import PostsSection from '@/components/features/posts/PostsSection';
 
 export default function ConnectionDetailPage() {
   const { id } = useParams();
@@ -40,6 +42,8 @@ export default function ConnectionDetailPage() {
     };
   }, [id]);
 
+  // Posts list and handlers moved to PostsSection for reuse
+
   if (loading) return <div className="p-4 text-neutral-600 dark:text-gray-400">Loading profile…</div>;
   if (!user) return <div className="p-4 text-neutral-600 dark:text-gray-300">Profile not found.</div>;
 
@@ -60,6 +64,9 @@ export default function ConnectionDetailPage() {
             <AboutSection about={user.about} />
             <SkillsSection skills={user.skills} />
             <PeopleAlsoViewed suggestions={suggestions} navigate={navigate} />
+            <div className="space-y-4">
+              <PostsSection title={`${(user.name?.split(' ')[0] || 'User')}'s Posts`} source={{ authorId: id }} showComposer={false} />
+            </div>
           </div>
           
         </div>

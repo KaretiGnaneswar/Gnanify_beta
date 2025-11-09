@@ -8,11 +8,14 @@ import ExperienceSection from '@/components/features/Profile/ExperienceSection';
 import SocialLinksSection from '@/components/features/Profile/SocialLinksSection';
 import ProfileContribution from '@/components/features/Profile/ProfileContribution';
 import ProjectSection from '@/components/features/Profile/ProjectSextion';
+import PostsFeed from '@/components/features/home/PostsFeed';
+import PostsSection from '@/components/features/posts/PostsSection';
 
 export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [profile, setProfile] = useState(null);
+  const [posts, setPosts] = useState([]);
 
   useEffect(() => {
     let mounted = true;
@@ -34,6 +37,7 @@ export default function ProfilePage() {
     };
   }, []);
 
+
   if (loading)
     return <p className="p-4 text-gray-500 dark:text-gray-400">Loading profile...</p>;
   if (error) return <p className="p-4 text-red-500 dark:text-red-400">{error}</p>;
@@ -48,6 +52,7 @@ export default function ProfilePage() {
       <ExperienceSection profile={profile} setProfile={setProfile} />
       <ProjectSection profile={profile} setProfile={setProfile} />
       <ProfileContribution />
+      <PostsSection title="My Posts" source="my" showComposer={false} />
     </div>
   );
 }

@@ -6,8 +6,10 @@ import LogoutConfirmModal from "@/components/ui/modals/LogoutConfirmModal";
 const LeftSidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { logout } = useAuth();
+  const { logout, user, token } = useAuth();
   const [logoutOpen, setLogoutOpen] = useState(false);
+
+  const LEARN_URL = import.meta.env.VITE_LEARN_URL || "http://localhost:3001/";
 
   const buttons = [
     { icon: "🏠", title: "Home", path: "/" },
@@ -26,6 +28,27 @@ const LeftSidebar = () => {
   const handleClick = (title, path) => {
     if (title === "Logout") {
       setLogoutOpen(true);
+    } else if (title === "Store") {
+      // Build user payload and redirect to Learn app
+      const nameFallback = [user?.first_name, user?.last_name].filter(Boolean).join(' ').trim() || undefined;
+      const payload = {
+        name: user?.full_name || nameFallback || user?.username || user?.name || undefined,
+        username: user?.username || undefined,
+        email: user?.email || user?.primary_email || undefined,
+        token: token || localStorage.getItem('auth_token') || undefined,
+      };
+      try {
+        const blob = btoa(JSON.stringify(payload));
+        window.location.href = `${LEARN_URL}?user=${encodeURIComponent(blob)}`;
+      } catch {
+        // Fallback to basic params if encoding fails
+        const params = new URLSearchParams();
+        if (payload.name) params.set("name", payload.name);
+        if (payload.username) params.set("username", payload.username);
+        if (payload.email) params.set("email", payload.email);
+        if (payload.token) params.set("token", payload.token);
+        window.location.href = `${LEARN_URL}?${params.toString()}`;
+      }
     } else if (path) {
       navigate(path);
     }
@@ -43,7 +66,7 @@ const LeftSidebar = () => {
           {btn.path ? (
             <NavLink
               to={btn.path}
-              onClick={(e) => { e.stopPropagation(); navigate(btn.path); }}
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleClick(btn.title, btn.path); }}
               className={({ isActive }) =>
                 `flex flex-col items-center`}
             >

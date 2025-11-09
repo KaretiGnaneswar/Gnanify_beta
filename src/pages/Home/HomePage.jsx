@@ -8,10 +8,11 @@ import PostComposer from "@/components/features/posts/PostComposer";
 import Hero from "@/components/features/home/Hero";
 import Stats from "@/components/features/home/Stats";
 import PostsFeed from "@/components/features/home/PostsFeed";
+import PostsSection from "@/components/features/posts/PostsSection";
 import RecentBlogs from "@/components/features/home/RecentBlogs";
 import TopCourses from "@/components/features/home/TopCourses";
 import TrendingNews from "@/components/features/home/TrendingNews";
-import { listPosts, createPost as createServicePost, reactApi } from "@/services/posts";
+import { listPosts, createPost as createServicePost, reactApi, addComment } from "@/services/posts";
 import { listTrendingNews } from "@/services/news";
 import { useAuth } from "@/context/AuthContext";
 
@@ -30,11 +31,16 @@ const HomePage = () => {
 
 
   useEffect(() => {
-    setPosts(listPosts());
-    setNews(listTrendingNews());
+    (async () => {
+      try {
+        const ps = await listPosts();
+        setPosts(ps);
+      } catch {}
+      setNews(listTrendingNews());
+    })();
   }, []);
 
-  function handleCreatePost({ text, image }) {
+  async function handleCreatePost({ text, image }) {
     const author = {
       id: currentUser?.id,
       name: currentUser?.name || currentUser?.email || "You",
@@ -42,27 +48,14 @@ const HomePage = () => {
       title: currentUser?.title || "",
       company: currentUser?.company || "",
     };
-    createServicePost({ author, text, image });
-    setPosts(listPosts());
+    try {
+      await createServicePost({ author, text, image });
+      const ps = await listPosts();
+      setPosts(ps);
+    } catch {}
   }
 
-  // Post actions via service
-  function onLike(id) {
-    reactApi.like(id);
-    setPosts(listPosts());
-  }
-  function onDislike(id) {
-    reactApi.dislike(id);
-    setPosts(listPosts());
-  }
-  function onRepost(id) {
-    reactApi.repost(id);
-    setPosts(listPosts());
-  }
-  function onShare(id) {
-    reactApi.share(id);
-    setPosts(listPosts());
-  }
+  // Posts UI moved into PostsSection for reuse
 
   useEffect(() => {
     let mounted = true;
@@ -149,11 +142,7 @@ const HomePage = () => {
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Left: Blogs + Connections */}
         <div className="space-y-6 lg:col-span-2">
-          {/* Create Post (LinkedIn style) */}
-          <PostComposer currentUser={currentUser} onCreate={handleCreatePost} />
-
-          {/* Posts Feed */}
-          <PostsFeed posts={posts} onLike={onLike} onDislike={onDislike} onRepost={onRepost} onShare={onShare} />
+          <PostsSection title="Posts" source="all" showComposer={true} />
 
           {/* Recent Blogs */}
           <RecentBlogs
