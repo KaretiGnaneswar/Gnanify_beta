@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { BlogCard } from '@/components';
+import CompactAd from '@/components/features/ads/CompactAd';
 import CreateBlogModal from '@/components/features/blogs/CreateBlogModal';
 import { getBlogs } from '@/services/blogs';
 

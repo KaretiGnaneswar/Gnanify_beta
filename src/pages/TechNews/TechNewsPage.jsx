@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { techNewsApi } from "@/services/technews";
+import CompactAd from "@/components/features/ads/CompactAd";
 
 const tabs = [
   { key: "trending", title: "Trending" },
@@ -103,6 +104,9 @@ export default function TechNewsPage() {
               className="w-full px-3 py-2 rounded-lg bg-white dark:bg-neutral-800 border border-gray-300 dark:border-gray-700 text-sm focus:ring-2 focus:ring-orange-500 outline-none"
             />
           </div>
+          <div className="mt-3">
+            <CompactAd slot="YOUR_SLOT_ID" />
+          </div>
 
           {/* Error */}
           {error && (
@@ -126,58 +130,70 @@ export default function TechNewsPage() {
             </div>
           ) : (
             <div className="mt-4 grid gap-3">
-              {items
-                .filter((it) =>
+              {(() => {
+                const INLINE_AD_EVERY = 8;
+                const filtered = items.filter((it) =>
                   it.title?.toLowerCase().includes(query.toLowerCase())
-                )
-                .map((it) => (
-                  <div
-                    key={it.id}
-                    className="p-5 rounded-xl bg-gray-50 dark:bg-neutral-900 border border-gray-200 dark:border-gray-800 hover:shadow-md transition-all"
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <div className="font-medium text-gray-900 dark:text-white hover:text-orange-500 transition-colors cursor-pointer line-clamp-2">
-                          {it.title}
+                );
+                const rows = [];
+                filtered.forEach((it, idx) => {
+                  rows.push(
+                    <div
+                      key={it.id}
+                      className="p-5 rounded-xl bg-gray-50 dark:bg-neutral-900 border border-gray-200 dark:border-gray-800 hover:shadow-md transition-all"
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <div className="font-medium text-gray-900 dark:text-white hover:text-orange-500 transition-colors cursor-pointer line-clamp-2">
+                            {it.title}
+                          </div>
+                          <div className="text-xs text-gray-500 dark:text-gray-400 mt-1 flex items-center gap-2 flex-wrap">
+                            <span className="px-2 py-0.5 rounded-full bg-gray-100 dark:bg-neutral-800 border border-gray-300 dark:border-gray-700">
+                              {it.source}
+                            </span>
+                            {it.points != null && (
+                              <span className="px-2 py-0.5 rounded-full bg-gray-100 dark:bg-neutral-800 border border-gray-300 dark:border-gray-700">
+                                ⬆ {it.points} points
+                              </span>
+                            )}
+                            {it.comments != null && (
+                              <span className="px-2 py-0.5 rounded-full bg-gray-100 dark:bg-neutral-800 border border-gray-300 dark:border-gray-700">
+                                💬 {it.comments}
+                              </span>
+                            )}
+                            {it.time && (
+                              <span className="px-2 py-0.5 rounded-full bg-gray-100 dark:bg-neutral-800 border border-gray-300 dark:border-gray-700">
+                                ⏱ {timeAgo(it.time)}
+                              </span>
+                            )}
+                          </div>
                         </div>
-                        <div className="text-xs text-gray-500 dark:text-gray-400 mt-1 flex items-center gap-2 flex-wrap">
-                          <span className="px-2 py-0.5 rounded-full bg-gray-100 dark:bg-neutral-800 border border-gray-300 dark:border-gray-700">
-                            {it.source}
-                          </span>
-                          {it.points != null && (
-                            <span className="px-2 py-0.5 rounded-full bg-gray-100 dark:bg-neutral-800 border border-gray-300 dark:border-gray-700">
-                              ⬆ {it.points} points
-                            </span>
-                          )}
-                          {it.comments != null && (
-                            <span className="px-2 py-0.5 rounded-full bg-gray-100 dark:bg-neutral-800 border border-gray-300 dark:border-gray-700">
-                              💬 {it.comments}
-                            </span>
-                          )}
-                          {it.time && (
-                            <span className="px-2 py-0.5 rounded-full bg-gray-100 dark:bg-neutral-800 border border-gray-300 dark:border-gray-700">
-                              ⏱ {timeAgo(it.time)}
-                            </span>
-                          )}
-                        </div>
+                        <button
+                          className="h-9 px-3 rounded-md bg-orange-500 text-white text-sm font-semibold hover:bg-orange-600 shrink-0"
+                          onClick={() => {}}
+                        >
+                          Read
+                        </button>
                       </div>
-                      <button
-                        className="h-9 px-3 rounded-md bg-orange-500 text-white text-sm font-semibold hover:bg-orange-600 shrink-0"
-                        onClick={() => {}}
-                      >
-                        Read
-                      </button>
                     </div>
-                  </div>
-                ))}
-              {!error &&
-                items.filter((it) =>
-                  it.title?.toLowerCase().includes(query.toLowerCase())
-                ).length === 0 && (
-                  <div className="text-gray-500 dark:text-gray-400">
-                    No results.
-                  </div>
-                )}
+                  );
+                  if ((idx + 1) % INLINE_AD_EVERY === 0) {
+                    rows.push(
+                      <div key={`ad-${it.id}`} className="p-5 rounded-xl bg-gray-50 dark:bg-neutral-900 border border-gray-200 dark:border-gray-800 hover:shadow-md transition-all">
+                        <CompactAd slot="YOUR_SLOT_ID" />
+                      </div>
+                    );
+                  }
+                });
+                if (!error && rows.length === 0) {
+                  rows.push(
+                    <div key="nores" className="text-gray-500 dark:text-gray-400">
+                      No results.
+                    </div>
+                  );
+                }
+                return rows;
+              })()}
             </div>
           )}
         </div>
@@ -210,6 +226,9 @@ export default function TechNewsPage() {
                 </div>
               )}
             </div>
+          </div>
+          <div className="mt-4">
+            <CompactAd slot="YOUR_SLOT_ID" />
           </div>
         </aside>
       </div>

@@ -1,34 +1,32 @@
 import { useState } from "react";
 import { useLocation, useNavigate, NavLink } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
-import LogoutConfirmModal from "@/components/ui/modals/LogoutConfirmModal";
+import { 
+  FiHome, FiBriefcase, FiFileText, FiRss, FiBook, FiBookOpen, 
+  FiUsers, FiShoppingBag, FiSettings 
+} from "react-icons/fi";
 
 const LeftSidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { logout, user, token } = useAuth();
-  const [logoutOpen, setLogoutOpen] = useState(false);
+  const { user, token } = useAuth();
 
   const LEARN_URL = import.meta.env.VITE_LEARN_URL || "http://localhost:3001/";
 
   const buttons = [
-    { icon: "🏠", title: "Home", path: "/" },
-    // { icon: "💻", title: "Compiler", path: "/compiler" },
-    
-    { icon: "📄", title: "Resume", path: "/resume" },
-    { icon: "📰", title: "Tech News", path: "/technews" },
-    { icon: "📝", title: "Blogs", path: "/blogs" },
-    { icon: "📚", title: "Courses", path: "/courses" },
-    { icon: "🤝", title: "Connections", path: "/connections" },
-    { icon: "📚", title: "Store", path: "/store" },
-    { icon: "⚙️", title: "Settings", path: "/settings" },
-    { icon: "🚪", title: "Logout" },
+    { icon: <FiHome size={20} />, title: "Home", path: "/" },
+    { icon: <FiBriefcase size={20} />, title: "Jobs", path: "/jobs" },
+    { icon: <FiFileText size={20} />, title: "Resume", path: "/resume" },
+    { icon: <FiRss size={20} />, title: "Tech News", path: "/technews" },
+    { icon: <FiBook size={20} />, title: "Blogs", path: "/blogs" },
+    { icon: <FiBookOpen size={20} />, title: "Courses", path: "/courses" },
+    { icon: <FiUsers size={20} />, title: "Connections", path: "/connections" },
+    { icon: <FiShoppingBag size={20} />, title: "Store", path: "/store" },
+    { icon: <FiSettings size={20} />, title: "Settings", path: "/settings" },
   ];
 
   const handleClick = (title, path) => {
-    if (title === "Logout") {
-      setLogoutOpen(true);
-    } else if (title === "Store") {
+    if (title === "Store") {
       // Build user payload and redirect to Learn app
       const nameFallback = [user?.first_name, user?.last_name].filter(Boolean).join(' ').trim() || undefined;
       const payload = {
@@ -52,11 +50,6 @@ const LeftSidebar = () => {
     } else if (path) {
       navigate(path);
     }
-  };
-
-  const doLogout = () => {
-    logout();
-    navigate("/", { replace: true }); // This will redirect to start page for unauthenticated users
   };
 
   return (
@@ -93,15 +86,6 @@ const LeftSidebar = () => {
           )}
         </div>
       ))}
-
-      <LogoutConfirmModal
-        open={logoutOpen}
-        onCancel={() => setLogoutOpen(false)}
-        onConfirm={() => {
-          setLogoutOpen(false);
-          doLogout();
-        }}
-      />
     </div>
   );
 };

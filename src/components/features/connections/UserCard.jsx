@@ -1,56 +1,112 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import ConnectButton from './ConnectButton';
+import React from "react";
+import { useNavigate } from "react-router-dom";
+import { Share2 } from "lucide-react"; // Share icon
+import ConnectButton from "./ConnectButton";
 
 export default function UserCard({ user }) {
   const navigate = useNavigate();
-  const followersCount = Number(user?.followersCount ?? user?.followers ?? 0);
-  const mutualsCount = Number(
-    user?.mutualsCount ?? (Array.isArray(user?.mutuals) ? user.mutuals.length : (user?.mutualConnections ?? 0)) ?? 0
+
+  const followersCount = Number(
+    user?.followersCount ?? user?.followers ?? 0
   );
-  const collegeName = String(user?.college || user?.education || user?.institution || 'Unknown college');
+  const mutualsCount = Number(
+    user?.mutualsCount ??
+      (Array.isArray(user?.mutuals)
+        ? user.mutuals.length
+        : user?.mutualConnections ?? 0)
+  );
+
+  const collegeName = String(
+    user?.college || user?.education || user?.institution || "Unknown college"
+  );
+
   return (
-    <div className="rounded-xl border border-neutral-200 dark:border-white/10 bg-white dark:bg-gray-900/40 backdrop-blur-md p-4 flex gap-4 items-start shadow-sm hover:shadow-md hover:-translate-y-[1px] hover:bg-neutral-50 dark:hover:bg-gray-900/60 transition-all min-h-[180px]">
+    <div
+      className="
+        rounded-2xl 
+        bg-white/70 dark:bg-gray-900/40 
+        backdrop-blur-xl p-5 
+        flex gap-5 relative
+        shadow-sm
+      "
+    >
+      {/* SHARE ICON TOP RIGHT */}
+      <button
+        className="
+          absolute top-3 right-3 
+          text-neutral-500 dark:text-neutral-300 
+          hover:text-blue-600 dark:hover:text-blue-400
+        "
+      >
+        <Share2 size={18} />
+      </button>
+
+      {/* USER IMAGE */}
       <img
         src={user.avatarUrl}
         alt={user.name}
-        className="w-14 h-14 rounded-full object-cover ring-2 ring-neutral-200 dark:ring-white/10"
+        className="w-16 h-16 rounded-full object-cover shadow-md"
       />
-      <div className="flex-1 min-w-0">
+
+      <div className="flex-1 min-w-0 flex flex-col">
+        {/* NAME */}
         <button
           onClick={() => navigate(`/connections/${user.id}`)}
-          className="text-lg font-semibold text-neutral-900 dark:text-white hover:underline text-left truncate"
-          title={user.name}
+          className="
+            text-xl font-semibold 
+            text-neutral-900 dark:text-white 
+            hover:underline text-left truncate
+          "
         >
           {user.name}
         </button>
-        <div className="text-sm text-neutral-700 dark:text-gray-300 truncate" title={user.title}>{user.title}</div>
-        <div className="text-xs text-neutral-500 dark:text-gray-400">{user.location}</div>
-        <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
-          <span className="px-2 py-0.5 rounded-full bg-neutral-100 text-neutral-700 border border-neutral-200 dark:bg-neutral-800 dark:text-neutral-300 dark:border-white/10">
-            {followersCount} followers
-          </span>
-          <span className="px-2 py-0.5 rounded-full bg-neutral-100 text-neutral-700 border border-neutral-200 dark:bg-neutral-800 dark:text-neutral-300 dark:border-white/10">
-            {mutualsCount} mutuals
-          </span>
-          <span className="px-2 py-0.5 rounded-full bg-neutral-100 text-neutral-700 border border-neutral-200 dark:bg-neutral-800 dark:text-neutral-300 dark:border-white/10 truncate max-w-[50%]">
-            {collegeName}
-          </span>
+
+        <div className="text-sm text-neutral-700 dark:text-gray-300 truncate">
+          {user.title}
         </div>
-        <div className="mt-2 flex flex-wrap gap-2">
-          {(user.skills?.slice(0, 3) || []).map((s) => (
-            <span key={s} className="text-xs px-2 py-0.5 rounded-full bg-neutral-100 text-neutral-900 border border-neutral-200 dark:bg-gray-800 dark:text-gray-200 dark:border-white/10">
-              {s}
-            </span>
+
+        <div className="text-xs text-neutral-500 dark:text-gray-400">
+          {user.location}
+        </div>
+
+        {/* TAGS */}
+        <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
+          <Tag>{followersCount} followers</Tag>
+          <Tag>{mutualsCount} mutuals</Tag>
+          <Tag className="truncate max-w-[60%]">{collegeName}</Tag>
+        </div>
+
+        {/* SKILLS */}
+        <div className="mt-3 flex flex-wrap gap-2">
+          {(user.skills?.slice(0, 3) || []).map((skill) => (
+            <Tag key={skill}>{skill}</Tag>
           ))}
           {Array.isArray(user.skills) && user.skills.length > 3 && (
-            <span className="text-xs px-2 py-0.5 rounded-full bg-neutral-100 text-neutral-700 border border-neutral-200 dark:bg-gray-800 dark:text-gray-300 dark:border-white/10">
-              +{user.skills.length - 3} more
-            </span>
+            <Tag>+{user.skills.length - 3} more</Tag>
           )}
         </div>
+
+        {/* CONNECT BUTTON AT BOTTOM */}
+        <div className="mt-4">
+          <ConnectButton userId={user.id} initialConnected={user.connected} />
+        </div>
       </div>
-      <ConnectButton userId={user.id} initialConnected={user.connected} />
     </div>
+  );
+}
+
+function Tag({ children, className = "" }) {
+  return (
+    <span
+      className={`
+        px-3 py-1 rounded-full 
+        bg-neutral-100/70 dark:bg-neutral-800/60 
+        text-neutral-700 dark:text-neutral-300
+        shadow-sm text-xs
+        ${className}
+      `}
+    >
+      {children}
+    </span>
   );
 }

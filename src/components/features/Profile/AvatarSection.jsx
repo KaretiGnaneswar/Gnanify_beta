@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { FiEdit3, FiCamera, FiCheck, FiX } from 'react-icons/fi';
+import { updateProfile } from '@/services/auth';
+import { toast } from 'react-hot-toast';
 
 export default function AvatarSection({ profile, setProfile }) {
   const [avatarUrl, setAvatarUrl] = useState(profile.avatar_url || '');
@@ -81,12 +83,41 @@ export default function AvatarSection({ profile, setProfile }) {
                 />
                 <button
                   type="button"
-                  onClick={() => {
-                    setProfile((p) => ({ ...(p || {}), name: nameDraft }));
-                    setEditName(false);
+                  onClick={async () => {
+                    try {
+                      console.log('Sending update with:', { name: nameDraft });
+                      // Try sending just the name directly
+                      const response = await updateProfile({ name: nameDraft });
+                      console.log('Update response:', response);
+                      setProfile((p) => ({ ...(p || {}), name: nameDraft }));
+                      setEditName(false);
+                      toast.success('Profile updated successfully');
+                    } catch (error) {
+                      console.error('Full error object:', error);
+                      console.error('Error response data:', error.response?.data);
+                      
+                      // Try to extract a meaningful error message
+                      let errorMessage = 'Failed to update profile';
+                      if (error.response?.data) {
+                        // Handle different possible error response formats
+                        if (error.response.data.error) {
+                          errorMessage = error.response.data.error;
+                        } else if (error.response.data.message) {
+                          errorMessage = error.response.data.message;
+                        } else if (error.response.data.detail) {
+                          errorMessage = error.response.data.detail;
+                        }
+                      } else if (error.message) {
+                        errorMessage = error.message;
+                      }
+                      
+                      console.error('Error updating profile:', errorMessage);
+                      toast.error(errorMessage);
+                    }
                   }}
                   className="p-1.5 bg-orange-500 hover:bg-orange-600 rounded-md text-white dark:text-black transition"
                   title="Save"
+                  disabled={!nameDraft.trim()}
                 >
                   <FiCheck size={16} />
                 </button>
@@ -107,6 +138,11 @@ export default function AvatarSection({ profile, setProfile }) {
 
           <div className="mt-1 text-neutral-600 dark:text-neutral-400 text-sm break-all">
             {profile.email || 'No email provided'}
+            {profile.is_verified && (
+              <span className="ml-1 text-xs bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300 px-1.5 py-0.5 rounded">
+                Verified
+              </span>
+            )}
           </div>
 
           <div className="mt-1 text-sm text-neutral-600 dark:text-neutral-400 italic">
